@@ -1,0 +1,39 @@
+baseurl = "https://jstaf.github.io/hpc-python/"
+languageCode = "en-us"
+metadataformat = "yaml"
+title = "HPC Python"
+theme = "hugo-alabaster-theme"
+publishDir = "docs"
+
+disqusShortname = ""
+googleAnalytics = ""
+
+[params]
+	name = "HPC Python"
+	description = "Writing analysis pipelines with Python"
+
+	github_user   = "jstaf"
+	github_repo   = "hpc-python"
+	github_banner = false
+
+	custom_css = []
+	custom_js  = []
+
+	highlightjs = "css/highlight.css"
+	favicon = "favicon.ico"
+
+[params.sidebar]
+	logo = "favicon.ico"
+
+
+	github_button  = false
+	travis_button  = false
+	codecov_button = false
+	gratipay = ""
+
+	show_relations = false
+
+[params.footer]
+	copyright = "[Jeff Stafford](https://github.com/jstaf)"
+	show_powered_by = true
+

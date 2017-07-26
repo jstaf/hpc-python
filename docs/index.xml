@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HPC Python</title>
+    <link>https://jstaf.github.io/hpc-python/</link>
+    <description>Recent content on HPC Python</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 23 Apr 2016 15:21:22 +0200</lastBuildDate>
+    
+	<atom:link href="https://jstaf.github.io/hpc-python/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Pipelining with Python</title>
+      <link>https://jstaf.github.io/hpc-python/</link>
+      <pubDate>Sat, 23 Apr 2016 15:21:22 +0200</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/</guid>
+      <description>Python is probably the most versatile language in existence. However one of its most useful features is its ability to tie things together and automate the execution of other programs.
+This tutorial focuses on using Python in HPC environments to automate data analysis pipelines. We&amp;rsquo;ll start with the basics and cover everything you need to get started writing pipelines. Some elements of writing performance-oriented code will be covered, but it is not the main focus.</description>
+    </item>
+    
+  </channel>
+</rss>
