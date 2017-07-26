@@ -1,0 +1,438 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head lang="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+	<meta name="description" content="Writing analysis pipelines with Python">
+	<meta name="generator" content="Hugo 0.25.1" />
+	
+	<title>Wildcards &mdash; HPC Python</title>
+	
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
+
+	
+
+	<link rel="shortcut icon" href="https://jstaf.github.io/hpc-python/favicon.ico" type="image/x-icon"/>
+</head>
+
+	<body role="document">
+		<div class="document">
+			<div class="documentwrapper">
+				<div class="bodywrapper">
+					<div class="body" role="main">
+						
+	<h1>Wildcards</h1>
+	
+	
+
+<p>After the exercise at the end of the previous episode, our Snakefile looked like this:</p>
+
+<pre><code># generate summary table
+rule zipf_test:
+    input:  'abyss.dat', 'last.dat', 'isles.dat'
+    output: 'results.txt'
+    shell:  'python zipf_test.py abyss.dat isles.dat last.dat &gt; results.txt'
+
+rule dats:
+     input: 'isles.dat', 'abyss.dat', 'last.dat'
+
+# delete everything so we can re-run things
+rule clean:
+    shell:  'rm -f *.dat results.txt'
+
+# count words in one of our &quot;books&quot;
+rule count_words:
+    input: 	'books/isles.txt'
+    output: 'isles.dat'
+    shell: 	'python wordcount.py books/isles.txt isles.dat'
+
+rule count_words_abyss:
+    input: 	'books/abyss.txt'
+    output: 'abyss.dat'
+    shell: 	'python wordcount.py books/abyss.txt abyss.dat'
+
+rule count_words_last:
+    input: 	'books/last.txt'
+    output: 'last.dat'
+    shell: 	'python wordcount.py books/last.txt last.dat'
+</code></pre>
+
+<p>Our Snakefile has a lot of duplication. For example, the names of text
+files and data files are repeated in many places throughout the
+Snakefile. Snakefiles are a form of code and, in any code, repeated code
+can lead to problems (e.g. we rename a data file in one part of the
+Snakefile but forget to rename it elsewhere).</p>
+
+<div class="admonition note">
+<p class="first admonition-title">D.R.Y. (Don&#39;t Repeat Yourself)</p>
+<p>In many programming languages, the bulk of the language features are
+there to allow the programmer to describe long-winded computational
+routines as short, expressive, beautiful code.  Features in Python
+or R or Java, such as user-defined variables and functions are useful in
+part because they mean we don&rsquo;t have to write out (or think about)
+all of the details over and over again.  This good habit of writing
+things out only once is known as the &ldquo;Don&rsquo;t Repeat Yourself&rdquo;
+principle or D.R.Y.</p>
+</div>
+
+<p>Let us set about removing some of the repetition from our Snakefile.
+In our <code>zip_test</code> rule we duplicate the data file names and the
+name of the results file name:</p>
+
+<pre><code>rule zipf_test:
+    input:
+            'abyss.dat',
+            'last.dat',
+            'isles.dat'
+    output: 'results.txt'
+    shell:  'python zipf_test.py abyss.dat isles.dat last.dat &gt; results.txt'
+</code></pre>
+
+<p>Looking at the results file name first, we can replace it in the action
+with <code>{output}</code>:</p>
+
+<pre><code>rule zipf_test:
+    input:  'abyss.dat', 'last.dat', 'isles.dat'
+    output: 'results.txt'
+    shell:  'python zipf_test.py abyss.dat isles.dat last.dat &gt; {output}'
+</code></pre>
+
+<p><code>{output}</code> is a Snakemake <a href="{{ page.root }}/reference/#automatic-variable">wildcard</a>
+which is equivalent to the value we specified for {output}.</p>
+
+<p>We can replace the dependencies in the action with <code>{input}</code>:</p>
+
+<pre><code>rule zipf_test:
+    input:  'abyss.dat', 'last.dat', 'isles.dat'
+    output: 'results.txt'
+    shell:  'python zipf_test.py {input} &gt; {output}'
+</code></pre>
+
+<p><code>{input}</code> is another wildcard which means &lsquo;all the dependencies
+of the current rule&rsquo;. Again, when Make is run it will replace this
+variable with the dependencies.</p>
+
+<p>Let&rsquo;s update our text files and re-run our rule:</p>
+
+<pre><code>touch books/*.txt
+snakemake results.txt
+</code></pre>
+
+<p>We get:</p>
+
+<pre><code>Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	count_words
+	1	count_words_abyss
+	1	count_words_last
+	1	zipf_test
+	4
+
+rule count_words_last:
+    input: books/last.txt
+    output: last.dat
+    jobid: 1
+
+Finished job 1.
+1 of 4 steps (25%) done
+
+rule count_words_abyss:
+    input: books/abyss.txt
+    output: abyss.dat
+    jobid: 2
+
+Finished job 2.
+2 of 4 steps (50%) done
+
+rule count_words:
+    input: books/isles.txt
+    output: isles.dat
+    jobid: 3
+
+Finished job 3.
+3 of 4 steps (75%) done
+
+rule zipf_test:
+    input: abyss.dat, last.dat, isles.dat
+    output: results.txt
+    jobid: 0
+
+Finished job 0.
+4 of 4 steps (100%) done
+</code></pre>
+
+<div class="admonition ">
+<p class="first admonition-title">Exercise - Update dependencies</p>
+<p>What will happen if you now execute:</p>
+
+<pre><code>touch *.dat
+snakemake results.txt
+</code></pre>
+
+<ol>
+<li>nothing</li>
+<li>all files recreated</li>
+<li>only <code>.dat</code> files recreated</li>
+<li>only <code>results.txt</code> recreated</li>
+</ol>
+</p>
+</div>
+
+<p>As we saw, <code>{input}</code> means &lsquo;all the dependencies of the current rule&rsquo;. This
+works well for <code>results.txt</code> as its action treats all the dependencies
+the same - as the input for the <code>zipf_test.py</code> script.</p>
+
+<div class="admonition ">
+<p class="first admonition-title">Exercise - Rewrite `.dat` rules to use wildcards</p>
+<p>Rewrite each <code>.dat</code> rule to use the {input} and {output} wildcards</p>
+</div>
+
+<h2 id="handling-dependencies-differently">Handling dependencies differently</h2>
+
+<p>For many rules, we may want to treat some dependencies
+differently. For example, our rules for <code>.dat</code> use their first (and
+only) dependency specifically as the input file to <code>wordcount.py</code>. If
+we add additional dependencies (as we will soon do) then we don&rsquo;t want
+these being passed as input files to <code>wordcount.py</code> as it expects only
+one input file to be named when it is invoked.</p>
+
+<p>Snakemake provides several solutions to this.
+Depending on what we want to do, it&rsquo;s possible to both index and name our wildcards.</p>
+
+<p>We need to add <code>wordcount.py</code> as a dependency of each of our data files.
+In this case, we can use <code>{input[0]}</code> to refer to the first dependency,
+and <code>{input[1]}</code> to refer to the second.</p>
+
+<pre><code>rule count_words:
+    input: 	'wordcount.py', 'books/isles.txt'
+    output: 'isles.dat'
+    shell: 	'python {input[0]} {input[1]} {output}'
+</code></pre>
+
+<p>Alternatively, we can name our dependencies.</p>
+
+<pre><code>rule count_words_abyss:
+    input: 	
+        wc='wordcount.py',
+        book='books/abyss.txt'
+    output: 'abyss.dat'
+    shell: 	'python {input.wc} {input.book} {output}'
+</code></pre>
+
+<p>Let&rsquo;s mark <code>wordcount.py</code> as updated, and re-run the pipeline.</p>
+
+<pre><code>touch wordcount.py
+snakemake
+</code></pre>
+
+<pre><code>Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	count_words
+	1	count_words_abyss
+	1	zipf_test
+	3
+
+rule count_words_abyss:
+    input: wordcount.py, books/abyss.txt
+    output: abyss.dat
+    jobid: 2
+
+Finished job 2.
+1 of 3 steps (33%) done
+
+rule count_words:
+    input: wordcount.py, books/isles.txt
+    output: isles.dat
+    jobid: 1
+
+Finished job 1.
+2 of 3 steps (67%) done
+
+rule zipf_test:
+    input: abyss.dat, last.dat, isles.dat
+    output: results.txt
+    jobid: 0
+
+Finished job 0.
+3 of 3 steps (100%) done
+</code></pre>
+
+<p>Notice how <code>last.dat</code> (which does not depend on <code>wordcount.py</code>) is not rebuilt.
+Intuitively, we should also add <code>wordcount.py</code> as dependency for
+<code>results.txt</code>, as the final table should be rebuilt as we remake the
+<code>.dat</code> files. However, it turns out we don&rsquo;t have to! Let&rsquo;s see what
+happens to <code>results.txt</code> when we update <code>wordcount.py</code>:</p>
+
+<pre><code>touch wordcount.py
+snakemake results.txt
+</code></pre>
+
+<p>then we get:</p>
+
+<pre><code>Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	count_words
+	1	count_words_abyss
+	1	zipf_test
+	3
+
+rule count_words_abyss:
+    input: wordcount.py, books/abyss.txt
+    output: abyss.dat
+    jobid: 2
+
+Finished job 2.
+1 of 3 steps (33%) done
+
+rule count_words:
+    input: wordcount.py, books/isles.txt
+    output: isles.dat
+    jobid: 1
+
+Finished job 1.
+2 of 3 steps (67%) done
+
+rule zipf_test:
+    input: abyss.dat, last.dat, isles.dat
+    output: results.txt
+    jobid: 0
+
+Finished job 0.
+3 of 3 steps (100%) done
+</code></pre>
+
+<p>The whole pipeline is triggered, even the creation of the
+<code>results.txt</code> file! To understand this, note that according to the
+dependency figure, <code>results.txt</code> depends on the <code>.dat</code> files. The
+update of <code>wordcount.py</code> triggers an update of the <code>*.dat</code>
+files. Thus, <code>snakemake</code> sees that the dependencies (the <code>.dat</code> files) are
+newer than the target file (<code>results.txt</code>) and thus it recreates
+<code>results.txt</code>. This is an example of the power of <code>snakemake</code>: updating a
+subset of the files in the pipeline triggers rerunning the appropriate
+downstream steps.</p>
+
+<div class="admonition ">
+<p class="first admonition-title">Exercise - Updating one input file</p>
+<p>What will happen if you now execute:</p>
+
+<pre><code>touch books/last.txt
+make results.txt
+</code></pre>
+
+<ol>
+<li>only <code>last.dat</code> is recreated</li>
+<li>all <code>.dat</code> files are recreated</li>
+<li>only <code>last.dat</code> and <code>results.txt</code> are recreated</li>
+<li>all <code>.dat</code> and <code>results.txt</code> are recreated</li>
+</ol>
+</p>
+</div>
+
+<div class="admonition ">
+<p class="first admonition-title">Exercise - More dependencies...</p>
+<p>Add zipf_test.py as a dependency of <code>results.txt</code>
+Which method do you prefer here, indexing or named input files?
+Yes, this will be clunky, but we&rsquo;ll fix that part later!
+Remember that you can do a dry run with <code>snakemake -n -p</code>!</p>
+</div>
+
+<h2 id="next-section-sm-patterns"><a href="../sm-patterns/">Next section</a></h2>
+
+
+
+						
+					</div>
+				</div>
+			</div>
+			
+			<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+	<div class="sphinxsidebarwrapper">
+		<p class="logo">
+			<a href="https://jstaf.github.io/hpc-python/">
+				<img class="logo" src="https://jstaf.github.io/hpc-python/favicon.ico" alt="Logo"/>
+				<h1 class="logo logo-name">HPC Python</h1>
+			</a>
+		</p>
+		
+		<p class="blurb">Writing analysis pipelines with Python</p>
+
+		
+
+	
+
+	
+
+	
+		
+
+		
+
+<h3>Navigation</h3>
+<ul>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/">Pipelining with Python</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/basics/">Basic syntax</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/scripts/">Scripts and imports</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-intro/">Snakemake</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-snakefiles/">Snakefiles</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-wildcards/">Wildcards</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-patterns/">Pattern Rules</a>
+	</li>
+	
+</ul>
+
+
+		
+
+	</div>
+</div>
+<div class="clearer"></div>
+</div>
+			<div class="footer">
+	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
+	|
+	Powered by <a href="http://gohugo.io/">Hugo 0.25.1</a>
+	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
+	
+</div>
+
+
+
+
+			
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+			
+
+			
+		</div>
+	</body>
+</html>

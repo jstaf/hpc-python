@@ -1,0 +1,470 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head lang="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+	<meta name="description" content="Writing analysis pipelines with Python">
+	<meta name="generator" content="Hugo 0.25.1" />
+	
+	<title>Snakefiles are Python code &mdash; HPC Python</title>
+	
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
+
+	
+
+	<link rel="shortcut icon" href="https://jstaf.github.io/hpc-python/favicon.ico" type="image/x-icon"/>
+</head>
+
+	<body role="document">
+		<div class="document">
+			<div class="documentwrapper">
+				<div class="bodywrapper">
+					<div class="body" role="main">
+						
+	<h1>Snakefiles are Python code</h1>
+	
+	
+
+<p>Despite our efforts, our pipeline still has repeated content,
+for instance the names of output files/dependencies.
+Our <code>zipf_test</code> rule, for instance, is extremely clunky.
+What happens if we want to analyze <code>books/sierra.txt</code> as well?
+We&rsquo;d have to update everything!</p>
+
+<pre><code>rule zipf_test:
+    input:  'zipf_test.py', 'abyss.dat', 'last.dat', 'isles.dat'
+    output: 'results.txt'
+    shell:  'python {input[0]} {input[1]} {input[2]} {input[3]} &gt; {output}'
+</code></pre>
+
+<p>First, let&rsquo;s cut down on a little bit of the clunkiness of the &ldquo;shell&rdquo; rule.
+One thing you&rsquo;ve probably noticed is that all of our rules are using Python strings.
+Other data structures work too - let&rsquo;s try a list:</p>
+
+<pre><code>rule zipf_test:
+    input:  
+        zipf='zipf_test.py',
+        books=['abyss.dat', 'last.dat', 'isles.dat']
+    output: 'results.txt'
+    shell:  'python {input.zipf} {input.books} &gt; {output}'
+</code></pre>
+
+<p>(<code>snakemake clean</code> and <code>snakemake -p</code> should show that the pipeline still works!)</p>
+
+<p>This illustrates a key feature of Snakemake.
+Snakefiles are just Python code.
+We can make our list into a variable to demonstrate this.
+Let&rsquo;s create the variable DATS and use it in our <code>zipf_test</code> and <code>dats</code> rules.</p>
+
+<pre><code>DATS=['abyss.dat', 'last.dat', 'isles.dat']
+
+# generate summary table
+rule zipf_test:
+    input:  
+        zipf='zipf_test.py',
+        books=DATS
+    output: 'results.txt'
+    shell:  'python {input.zipf} {input.books} &gt; {output}'
+
+rule dats:
+    input: DATS
+</code></pre>
+
+<p>Try re-creating both the <code>dats</code> and <code>results.txt</code> targets
+(run <code>snakemake clean</code> in between).</p>
+
+<h2 id="when-are-snakefiles-executed">When are Snakefiles executed?</h2>
+
+<p>The last example illustrated that we can use arbitrary Python code in our Snakefile.
+It&rsquo;s important to understand when this code gets executed.
+Let&rsquo;s add a print statement to the top of our Snakefile.</p>
+
+<pre><code>print('Snakefile is being executed!')
+
+DATS=['abyss.dat', 'last.dat', 'isles.dat']
+
+# generate summary table
+rule zipf_test:
+    input:  
+# more output below
+</code></pre>
+
+<p>Now let&rsquo;s clean up our workspace with <code>snakemake clean</code></p>
+
+<pre><code>snakemake clean
+</code></pre>
+
+<pre><code>Snakefile is being executed!
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	clean
+	1
+
+rule clean:
+    jobid: 0
+
+Finished job 0.
+1 of 1 steps (100%) done
+</code></pre>
+
+<p>Now let&rsquo;s re-run the pipeline&hellip;</p>
+
+<pre><code>snakemake
+</code></pre>
+
+<pre><code>Snakefile is being executed!
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	3	count_words
+	1	zipf_test
+	4
+
+rule count_words:
+    input: wordcount.py, books/last.txt
+    output: last.dat
+    jobid: 3
+    wildcards: file=last
+
+Finished job 3.
+1 of 4 steps (25%) done
+
+rule count_words:
+    input: wordcount.py, books/abyss.txt
+    output: abyss.dat
+    jobid: 1
+    wildcards: file=abyss
+
+Finished job 1.
+2 of 4 steps (50%) done
+
+rule count_words:
+    input: wordcount.py, books/isles.txt
+    output: isles.dat
+    jobid: 2
+    wildcards: file=isles
+
+Finished job 2.
+3 of 4 steps (75%) done
+
+rule zipf_test:
+    input: zipf_test.py, abyss.dat, last.dat, isles.dat
+    output: results.txt
+    jobid: 0
+
+Finished job 0.
+4 of 4 steps (100%) done
+</code></pre>
+
+<p>Let&rsquo;s do a dry-run:</p>
+
+<pre><code>snakemake -n
+</code></pre>
+
+<pre><code>Snakefile is being executed!
+Nothing to be done.
+</code></pre>
+
+<p>In every case, the <code>print()</code> statement ran before any of the actual
+pipeline code was run.
+What we can take away from this is that Snakemake excutes the entire Snakefile
+every time we run <code>snakemake</code> (regardless of if it&rsquo;s a dry run!).
+Because of this, we need to be careful,
+and only put tasks that do &ldquo;real work&rdquo; (changing files on disk) inside rules.</p>
+
+<h2 id="using-functions-in-snakefiles">Using functions in Snakefiles</h2>
+
+<p>In our example here, we only have 4 books.
+But what if we had 700 books to be processed?
+It would be a massive effort to update our <code>DATS</code> variable to
+add the name of every single book&rsquo;s corresponding <code>.dat</code> filename.</p>
+
+<p>Fortunately, Snakemake ships with several functions that make working with
+large numbers of files much easier.
+The two most helpful ones are <code>glob_wildcards()</code> and <code>expand()</code>.
+Let&rsquo;s start an ipython session to see how they work:</p>
+
+<pre><code>ipython3
+</code></pre>
+
+<pre><code>Python 3.6.1 (default, Jun 27 2017, 14:35:15) 
+Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+
+IPython 5.3.0 -- An enhanced Interactive Python.
+?         -&gt; Introduction and overview of IPython's features.
+%quickref -&gt; Quick reference.
+help      -&gt; Python's own help system.
+object?   -&gt; Details about 'object', use 'object??' for extra details.
+</code></pre>
+
+<p>In this example, we will import these Snakemake functions directly in our ipython session.
+It is not necessary however, to import these functions within your Snakefile -
+these functions are always imported for you.</p>
+
+<pre><code>from snakemake.io import *
+</code></pre>
+
+<h3 id="generating-file-names-with-expand">Generating file names with expand()</h3>
+
+<p>The first function we&rsquo;ll use is <code>expand()</code>.
+<code>expand()</code> is used quite literally,
+to expand a snakemake wildcard(s) into a set of filenames.</p>
+
+<pre><code>expand('folder/{wildcard1}_{wildcard2}.txt', wildcard1=['a', 'b', 'c'], wildcard2=[1, 2, 3])
+</code></pre>
+
+<pre><code>['folder/a_1.txt',
+ 'folder/a_2.txt',
+ 'folder/a_3.txt',
+ 'folder/b_1.txt',
+ 'folder/b_2.txt',
+ 'folder/b_3.txt',
+ 'folder/c_1.txt',
+ 'folder/c_2.txt',
+ 'folder/c_3.txt']
+</code></pre>
+
+<p>In this case, <code>expand()</code> created every possible combination of filenames from the two wildcards.
+Useful! Of course, this still leaves us needing somehow get the values for
+<code>wildcard1</code> and <code>wildcard2</code> in the first place.</p>
+
+<h3 id="get-wildcard-values-with-glob-wildcards">Get wildcard values with glob_wildcards()</h3>
+
+<p>To get a set of wildcards from a list of files, we can use the
+<code>glob_wildcards()</code> function.
+Let&rsquo;s try grabbing all of the book titles in our <code>books</code> folder.</p>
+
+<pre><code>glob_wildcards('books/{example}.txt')
+</code></pre>
+
+<pre><code>Wildcards(example=['isles', 'last', 'abyss', 'sierra'])
+</code></pre>
+
+<p>glob_wildcards() returns a named tuple as output.
+In this case, there is only one wildcard, <code>{example}</code>.
+We can extract the values for name by getting the <code>example</code>
+property from the output of <code>glob_wildcards()</code></p>
+
+<pre><code>glob_wildcards('books/{example}.txt').example
+</code></pre>
+
+<pre><code>['isles', 'last', 'abyss', 'sierra']
+</code></pre>
+
+<h2 id="putting-it-all-together">Putting it all together</h2>
+
+<p>Using the <code>expand()</code> and <code>glob_wildcards()</code> functions,
+modify the pipeline so that it automatically detects and analyzes
+all the files in the <code>books/</code> folder.
+{: .challenge}</p>
+
+<h2 id="using-python-code-as-actions">Using Python code as actions</h2>
+
+<p>One very useful feature of Snakemake is the ability to execute Python code
+instead of just shell commands.
+Instead of <code>shell:</code> as an action, we can use <code>run:</code> instead.</p>
+
+<p>Add the following to our snakefile:</p>
+
+<pre><code># at the top of the file
+import os
+import glob
+
+# add this wherever
+rule print_book_names:
+    run:
+        print('These are all the book names:')
+        for book in glob.glob('books/*.txt'):
+            print(book)
+</code></pre>
+
+<p>Upon execution of the corresponding rule, Snakemake dutifully runs our Python code
+in the <code>run:</code> block:</p>
+
+<pre><code>snakemake print_book_names
+</code></pre>
+
+<pre><code>Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	print_book_names
+	1
+
+rule print_book_names:
+    jobid: 0
+
+These are all the book names:
+books/isles.txt
+books/last.txt
+books/abyss.txt
+books/sierra.txt
+Finished job 0.
+1 of 1 steps (100%) done
+</code></pre>
+
+<h2 id="moving-output-locations">Moving output locations</h2>
+
+<p>Alter the rules in your Snakefile so that the <code>.dat</code> files are created in
+their own <code>dats/</code> folder.
+Note that creating this folder beforehand is unnecessary.
+Snakemake automatically create any folders for you, as needed.
+{: .challenge}</p>
+
+<h2 id="creating-pngs">Creating PNGs</h2>
+
+<p>Add new rules and update existing rules to:</p>
+
+<ul>
+<li>Create <code>.png</code> files from <code>.dat</code> files using <code>plotcount.py</code>.</li>
+<li>Remove all auto-generated files (<code>.dat</code>, <code>.png</code>,
+<code>results.txt</code>).</li>
+</ul>
+
+<p>Finally, many Snakefiles define a default target called <code>all</code> as first target,
+that will build what the Snakefile has been written to build (e.g. in
+our case, the <code>.png</code> files and the <code>results.txt</code> file).
+Add an <code>all</code> target to your Snakefile (Hint: this rule
+has the <code>results.txt</code> file and the <code>.png</code> files as dependencies, but
+no actions).  With that in place, instead of running <code>make
+results.txt</code>, you should now run <code>snakemake all</code>, or just simply
+<code>snakemake</code>.
+{: .challenge}</p>
+
+<h2 id="creating-an-archive">Creating an Archive</h2>
+
+<p>Update your pipeline to:</p>
+
+<ul>
+<li>Create an archive, <code>zipf_analysis.tar.gz</code>, to hold all our
+<code>.dat</code> files, plots, and the Zipf summary table.</li>
+<li>Update <code>all</code> to expect <code>zipf_analysis.tar.gz</code> as input.</li>
+<li>Remove <code>zipf_analysis.tar.gz</code> when <code>snakemake clean</code> is called.</li>
+</ul>
+
+<p>The syntax to create an archive is shown below:</p>
+
+<pre><code>tar -czvf zipf_analysis.tar.gz file1 directory2 file3 etc
+</code></pre>
+
+<p>{: .challenge}</p>
+
+<p>After these excercises our final workflow should look something like the following:</p>
+
+<p><img src="../fig/05-final-dag.svg" alt="Final directed acyclic graph" /></p>
+
+<h2 id="adding-more-books">Adding more books</h2>
+
+<p>We can now do a better job at testing Zipf&rsquo;s rule by adding more books.
+The books we have used come from the <a href="http://www.gutenberg.org/">Project Gutenberg</a> website.
+Project Gutenberg offers thousands of free ebooks to download.</p>
+
+<p><strong>Exercise instructions:</strong></p>
+
+<ul>
+<li>go to <a href="http://www.gutenberg.org/">Project Gutenberg</a> and use the search box to find another book,
+for example <a href="https://www.gutenberg.org/ebooks/174">&lsquo;The Picture of Dorian Gray&rsquo;</a> from Oscar Wilde.</li>
+<li>download the &lsquo;Plain Text UTF-8&rsquo; version and save it to the <code>books</code> folder;
+choose a short name for the file</li>
+<li>optionally, open the file in a text editor and remove extraneous text at the beginning and end
+(look for the phrase <code>End of Project Gutenberg's [title], by [author]</code>)</li>
+<li>run <code>snakemake</code> and check that the correct commands are run</li>
+<li>check the results.txt file to see how this book compares to the others
+{: .challenge}</li>
+</ul>
+
+
+
+						
+					</div>
+				</div>
+			</div>
+			
+			<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+	<div class="sphinxsidebarwrapper">
+		<p class="logo">
+			<a href="https://jstaf.github.io/hpc-python/">
+				<img class="logo" src="https://jstaf.github.io/hpc-python/favicon.ico" alt="Logo"/>
+				<h1 class="logo logo-name">HPC Python</h1>
+			</a>
+		</p>
+		
+		<p class="blurb">Writing analysis pipelines with Python</p>
+
+		
+
+	
+
+	
+
+	
+		
+
+		
+
+<h3>Navigation</h3>
+<ul>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/">Pipelining with Python</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/basics/">Basic syntax</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/scripts/">Scripts and imports</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-intro/">Snakemake</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-snakefiles/">Snakefiles</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-wildcards/">Wildcards</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-patterns/">Pattern Rules</a>
+	</li>
+	
+</ul>
+
+
+		
+
+	</div>
+</div>
+<div class="clearer"></div>
+</div>
+			<div class="footer">
+	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
+	|
+	Powered by <a href="http://gohugo.io/">Hugo 0.25.1</a>
+	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
+	
+</div>
+
+
+
+
+			
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+			
+
+			
+		</div>
+	</body>
+</html>

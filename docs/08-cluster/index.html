@@ -1,0 +1,358 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head lang="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+	<meta name="description" content="Writing analysis pipelines with Python">
+	<meta name="generator" content="Hugo 0.25.1" />
+	
+	<title>Scaling a pipeline across a cluster &mdash; HPC Python</title>
+	
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
+
+	
+
+	<link rel="shortcut icon" href="https://jstaf.github.io/hpc-python/favicon.ico" type="image/x-icon"/>
+</head>
+
+	<body role="document">
+		<div class="document">
+			<div class="documentwrapper">
+				<div class="bodywrapper">
+					<div class="body" role="main">
+						
+	<h1>Scaling a pipeline across a cluster</h1>
+	
+	
+
+<p>Right now we have a reasonably effective pipeline that scales nicely on our local computer.
+However, for the sake of this course,
+we&rsquo;ll pretend that our workflow actually takes significant computational resources
+and needs to be run on a cluster.</p>
+
+<h2 id="hpc-cluster-architecture">HPC cluster architecture</h2>
+
+<p>Most HPC clusters are run using a scheduler.
+The scheduler is a piece of software that handles which compute jobs are run when and where.
+It allows a set of users to share a shared computing system as efficiently as possible.
+In order to use it, users typically must write their commands to be run into a shell script
+and then &ldquo;submit&rdquo; it to the scheduler.</p>
+
+<p>A good analogy would be a university&rsquo;s room booking system.
+No one gets to use a room without going through the booking system.
+The booking system decides which rooms people get based on their requirements
+(# of students, time allotted, etc.).
+{: .callout}</p>
+
+<p>Normally, moving a workflow to be run by a cluster scheduler requires a lot of work.
+Batch scripts need to be written, and you&rsquo;ll need to monitor and babysit the status of each of your jobs.
+This is especially difficult if one batch job depends on the output from another.
+Even moving from one cluster to another (especially ones using a different scheduler)
+requires a large investment of time and effort - all the batch scripts from before need to be rewritten.</p>
+
+<p>Snakemake does all of this for you.
+All details of running the pipeline through the cluster scheduler are handled by Snakemake -
+this includes writing batch scripts, submitting, and monitoring jobs.
+In this scenario, the role of the scheduler is limited to ensuring each Snakemake rule
+is executed with the resources it needs.</p>
+
+<p>We&rsquo;ll explore how to port our example Snakemake pipeline by example
+Our current Snakefile is shown below:</p>
+
+<pre><code># our zipf analysis pipeline
+DATS = glob_wildcards('books/{book}.txt').book
+
+rule all:
+    input:
+        'zipf_analysis.tar.gz'
+
+# delete everything so we can re-run things
+rule clean:
+    shell:  
+        '''
+        rm -rf results dats plots
+        rm -f results.txt zipf_analysis.tar.gz
+        '''
+
+# count words in one of our &quot;books&quot;
+rule count_words:
+    input: 	
+        wc='wordcount.py',
+        book='books/{file}.txt'
+    output: 'dats/{file}.dat'
+    threads: 4
+    log: 'dats/{file}.log'
+    shell:
+        '''
+        echo &quot;Running {input.wc} with {threads} cores on {input.book}.&quot; &amp;&gt; {log} &amp;&amp;
+            python {input.wc} {input.book} {output} &amp;&gt;&gt; {log}
+        '''
+
+# create a plot for each book
+rule make_plot:
+    input:
+        plotcount='plotcount.py',
+        book='dats/{file}.dat'
+    output: 'plots/{file}.png'
+    resources: gpu=1
+    shell:  'python {input.plotcount} {input.book} {output}'
+
+# generate summary table
+rule zipf_test:
+    input:  
+        zipf='zipf_test.py',
+        books=expand('dats/{book}.dat', book=DATS)
+    output: 'results.txt'
+    shell:  'python {input.zipf} {input.books} &gt; {output}'
+
+# create an archive with all of our results
+rule make_archive:
+    input:
+        expand('plots/{book}.png', book=DATS),
+        expand('dats/{book}.dat', book=DATS),
+        'results.txt'
+    output: 'zipf_analysis.tar.gz'
+    shell: 'tar -czvf {output} {input}'
+</code></pre>
+
+<p>To run Snakemake on a cluster, we need to tell it how it to submit jobs.
+This is done using the <code>--cluster</code> argument.
+In this configuration, Snakemake runs on the cluster headnode and submits jobs.
+Each cluster job executes a single rule and then exits.
+Snakemake detects the creation of output files,
+and submits new jobs (rules) once their dependencies are created.</p>
+
+<h2 id="transferring-our-workflow">Transferring our workflow</h2>
+
+<p>Let&rsquo;s port our workflow to Compute Canada&rsquo;s Graham cluster as an example
+(you will probably be using a different cluster, adapt these instructions to your cluster).
+The first step will be to transfer our files to the cluster and log on via SSH.
+Snakemake has a powerful archiving utility that we can use to bundle up our workflow and transfer it.</p>
+
+<pre><code>snakemake clean
+tar -czvf pipeline.tar.gz .
+# transfer the pipeline via scp
+scp pipeline.tar.gz yourUsername@graham.computecanada.ca:
+# log on to the cluster
+ssh -X yourUsername@graham.computecanada.ca
+</code></pre>
+
+<h2 id="snakemake-archive-and-conda-deployment"><code>snakemake --archive</code> and Conda deployment</h2>
+
+<p>Snakemake has a built-in method to archive all input files
+and scripts under version control: <code>snakemake --archive</code>.
+What&rsquo;s more, it also installs any required dependencies if they can be installed
+using Anaconda&rsquo;s <code>conda</code> package manager.</p>
+
+<p>For more information on how to use this feature, see
+<a href="http://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html">http://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html</a>
+{: .callout}</p>
+
+<p>At this point we&rsquo;ve archived our entire pipeline, sent it to the cluster, and logged on.
+Let&rsquo;s create a folder for our pipeline and unpack it there.</p>
+
+<pre><code>mkdir pipeline
+mv pipeline.tar.gz pipeline
+cd pipeline
+tar -xvzf pipeline.tar.gz
+</code></pre>
+
+<p>If Snakemake and Python are not already installed on your cluster,
+you can install them using the following commands:</p>
+
+<pre><code>wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh -b
+echo 'export PATH=~/miniconda3/bin:~/.local/bin:$PATH' &gt;&gt; ~/.bashrc
+source ~/.bashrc
+conda install -y matplotlib numpy graphviz
+pip install --user snakemake
+</code></pre>
+
+<p>Assuming you&rsquo;ve transferred your files and everything is set to go,
+the command <code>snakemake -n</code> should work without errors.</p>
+
+<h2 id="cluster-configuration-with-cluster-json">Cluster configuration with <code>cluster.json</code></h2>
+
+<p>Snakemake uses a JSON-formatted configuration file to retrieve cluster submission parameters.
+An example (using SLURM) is shown below.
+You can check to see if your <code>cluster.json</code> is valid JSON syntax by pasting its contents into
+the box at <a href="https://jsonlint.com">jsonlint.com</a>.</p>
+
+<pre><code>{
+    &quot;__default__&quot;:
+    {
+        &quot;account&quot;: &quot;aSLURMSubmissionAccount&quot;,
+        &quot;mem&quot;: &quot;1G&quot;,
+        &quot;time&quot;: &quot;0:5:0&quot;
+    },
+    &quot;count_words&quot;:
+    {
+        &quot;time&quot;: &quot;0:10:0&quot;,
+        &quot;mem&quot;: &quot;2G&quot;
+    }
+}
+</code></pre>
+
+<p>This file has several components.
+The values under <code>__default__</code> represents a set of default configuration values
+that will be used for all rules.
+The defaults won&rsquo;t always be perfect, however -
+chances are some rules may need to run with non-default amounts of memory or time limits.
+We are using the <code>count_words</code> rule as an example of this.
+In this case, <code>count_words</code> has its own custom values for <code>time</code> and <code>mem</code> (just as an example).
+<code>{rule}</code> and <code>{wildcards}</code> are special wildcards that you can use here that
+correspond to the rule name and rule&rsquo;s wildcards, respectively
+(if you choose to use <code>{wildcards}</code>, make sure it has a value!).</p>
+
+<h2 id="local-rule-execution">Local rule execution</h2>
+
+<p>Some Snakemake rules perform trivial tasks where job submission might be overkill
+(i.e. less than 1 minute worth of compute time).
+It would be a better idea to have these rules execute locally
+(i.e. where the <code>snakemake</code> command is run)
+instead of as a job.
+Let&rsquo;s define <code>all</code>, <code>clean</code>, and <code>make_archive</code> as localrules near the top of our <code>Snakefile</code>.</p>
+
+<pre><code>localrules: all, clean, make_archive
+</code></pre>
+
+<h2 id="running-our-workflow-on-the-cluster">Running our workflow on the cluster</h2>
+
+<p>Ok, time for the moment we&rsquo;ve all been waiting for - let&rsquo;s run our workflow on the cluster.
+To run our Snakefile, we&rsquo;ll run the following command:</p>
+
+<pre><code>snakemake -j 100 --cluster-config cluster.json --cluster &quot;sbatch -A {cluster.account} --mem={cluster.mem} -t {cluster.time} -c {threads}&quot;
+</code></pre>
+
+<p>While things execute, you may wish to SSH to the cluster in another window so you can watch the pipeline&rsquo;s progress
+with <code>watch squeue -u $(whoami)</code>.</p>
+
+<p>In the meantime, let&rsquo;s dissect the command we just ran.</p>
+
+<p><strong><code>-j 100</code></strong> - <code>-j</code> no longer controls the number of cores when running on a cluster. Instead, it controls the maximum number of jobs that snakemake can have submitted at a time. This does not come into play here, but generally a sensible default is slightly above the maximum number of jobs you are allowed to have submitted at a time.</p>
+
+<p><strong><code>--cluster-config</code></strong> - This specifies the location of a JSON file to read cluster configuration values from. This should point to the <code>cluster.json</code> file we wrote earlier.</p>
+
+<p><strong><code>--cluster</code></strong> - This is the submission command that should be used for the scheduler. Note that command flags that normally are put in batch scripts are put here (most schedulers allow you to add submission flags like this when submitting a job). In this case, all of the values come from our <code>--cluster-config</code> file. You can access individual values with <code>{cluster.propertyName}</code>. Note that we can still use <code>{threads}</code> here.</p>
+
+<h2 id="notes-on-path">Notes on <code>$PATH</code></h2>
+
+<p>As with any cluster jobs, jobs started by Snakemake need to have the commands they are running on <code>$PATH</code>.
+For some schedulers (SLURM), no modifications are necessary - variables are passed to the jobs by default.
+Other schedulers (SGE) need to have this enabled through a command line flag when submitting jobs (<code>-V</code> for SGE).
+If this is possible, just run the <code>module load</code> commands you need ahead of the job and run Snakemake as normal.</p>
+
+<p>If this is not possible, you have several options:</p>
+
+<ul>
+<li>You can edit your <code>.bashrc</code> file to modify <code>$PATH</code> for all jobs and sessions you start on a cluster.</li>
+<li>Inserting <code>shell.prefix('some command')</code> in a Snakefile means that all rules run will be prefixed by <code>some_command</code>. You can use this to modify <code>$PATH</code>, eg. <code>shell.prefix('PATH=/extra/directory:$PATH ')</code>.</li>
+<li>You can modify rules directly to run the appropriate <code>module load</code> commands beforehand. This is not recommended, only if because it is more work than the other options available.</li>
+</ul>
+
+<h2 id="submitting-a-workflow-with-nohup">Submitting a workflow with nohup</h2>
+
+<p><code>nohup some_command &amp;</code> runs a command in the background and lets it keep running if you log off.
+Try running the pipeline in cluster mode using <code>nohup</code> (run <code>snakemake clean</code> beforehand).
+Where does the Snakemake log go to?
+Why might this technique be useful?
+Can we also submit the <code>snakemake --cluster</code> pipeline as a job?
+Where does the Snakemake command run in each scenario?</p>
+
+<p>You can kill the running Snakemake process with <code>killall snakemake</code>.
+Notice that if you try to run Snakemake again, it says the directory is locked.
+You can unlock the directory with <code>snakemake --unlock</code>.
+{: .challenge}</p>
+
+
+
+						
+					</div>
+				</div>
+			</div>
+			
+			<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+	<div class="sphinxsidebarwrapper">
+		<p class="logo">
+			<a href="https://jstaf.github.io/hpc-python/">
+				<img class="logo" src="https://jstaf.github.io/hpc-python/favicon.ico" alt="Logo"/>
+				<h1 class="logo logo-name">HPC Python</h1>
+			</a>
+		</p>
+		
+		<p class="blurb">Writing analysis pipelines with Python</p>
+
+		
+
+	
+
+	
+
+	
+		
+
+		
+
+<h3>Navigation</h3>
+<ul>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/">Pipelining with Python</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/basics/">Basic syntax</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/scripts/">Scripts and imports</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-intro/">Snakemake</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-snakefiles/">Snakefiles</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-wildcards/">Wildcards</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-patterns/">Pattern Rules</a>
+	</li>
+	
+</ul>
+
+
+		
+
+	</div>
+</div>
+<div class="clearer"></div>
+</div>
+			<div class="footer">
+	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
+	|
+	Powered by <a href="http://gohugo.io/">Hugo 0.25.1</a>
+	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
+	
+</div>
+
+
+
+
+			
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+			
+
+			
+		</div>
+	</body>
+</html>

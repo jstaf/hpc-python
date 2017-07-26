@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head lang="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+	<meta name="description" content="Writing analysis pipelines with Python">
+	<meta name="generator" content="Hugo 0.25.1" />
+	
+	<title>Pattern Rules &mdash; HPC Python</title>
+	
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
+
+	
+
+	<link rel="shortcut icon" href="https://jstaf.github.io/hpc-python/favicon.ico" type="image/x-icon"/>
+</head>
+
+	<body role="document">
+		<div class="document">
+			<div class="documentwrapper">
+				<div class="bodywrapper">
+					<div class="body" role="main">
+						
+	<h1>Pattern Rules</h1>
+	
+	
+
+<p>Our Snakefile still has a ton of repeated content. The rules for each <code>.dat</code>
+file all do the same thing for the part. We can
+replace these rules with a single pattern rule which can be used to build any
+<code>.dat</code> file from a <code>.txt</code> file in <code>books/</code>:</p>
+
+<pre><code>rule count_words:
+    input: 	
+        wc='wordcount.py',
+        book='books/{file}.txt'
+    output: '{file}.dat'
+    shell: 	'python {input.wc} {input.book} {output}'
+</code></pre>
+
+<p><code>{file}</code> is another arbitrary wildcard,
+that we can use as a placeholder for any generic book to analyze.
+Note that we don&rsquo;t have to use <code>{file}</code> as the name of our wildcard -
+it can be anything we want!</p>
+
+<p>This rule can be interpreted as:
+&ldquo;In order to build a file named <code>[something].dat</code> (the target)
+find a file named <code>books/[that same something].txt</code> (the dependency)
+and run <code>wordcount.py [the dependency] [the target]</code>.&rdquo;</p>
+
+<pre><code>snakemake clean
+# use the -p option to show that it is running things correctly!
+snakemake -p dats   
+</code></pre>
+
+<p>We should see the same output as before.
+Note that we can still use snakemake to build individual <code>.dat</code> targets as before,
+and that our new rule will work no matter what stem is being matched.</p>
+
+<pre><code>snakemake -p sierra.dat
+</code></pre>
+
+<p>which gives the output below:</p>
+
+<pre><code>Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	count_words
+	1
+
+rule count_words:
+    input: wordcount.py, books/sierra.txt
+    output: sierra.dat
+    jobid: 0
+    wildcards: file=sierra
+
+python wordcount.py books/sierra.txt sierra.dat
+Finished job 0.
+1 of 1 steps (100%) done
+</code></pre>
+
+<div class="admonition note">
+<p class="first admonition-title">Using wildcards</p>
+<p>Our arbitrary wildcards like <code>{file}</code> can only be used in
+<code>input:</code> and <code>output:</code> fields. It cannot be used in actions.</p>
+</div>
+
+<p>Our Makefile is now much shorter and cleaner:</p>
+
+<pre><code># generate summary table
+rule zipf_test:
+    input:  'zipf_test.py', 'abyss.dat', 'last.dat', 'isles.dat'
+    output: 'results.txt'
+    shell:  'python {input[0]} {input[1]} {input[2]} {input[3]} &gt; {output}'
+
+rule dats:
+     input:
+         'isles.dat', 'abyss.dat', 'last.dat'
+
+# delete everything so we can re-run things
+rule clean:
+    shell:  'rm -f *.dat results.txt'
+
+# count words in one of our &quot;books&quot;
+rule count_words:
+    input: 	
+        wc='wordcount.py',
+        book='books/{file}.txt'
+    output: '{file}.dat'
+    shell: 	'python {input.wc} {input.book} {output}'
+</code></pre>
+
+<h2 id="next-section-sm-python"><a href="../sm-python/">Next section</a></h2>
+
+
+
+						
+					</div>
+				</div>
+			</div>
+			
+			<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+	<div class="sphinxsidebarwrapper">
+		<p class="logo">
+			<a href="https://jstaf.github.io/hpc-python/">
+				<img class="logo" src="https://jstaf.github.io/hpc-python/favicon.ico" alt="Logo"/>
+				<h1 class="logo logo-name">HPC Python</h1>
+			</a>
+		</p>
+		
+		<p class="blurb">Writing analysis pipelines with Python</p>
+
+		
+
+	
+
+	
+
+	
+		
+
+		
+
+<h3>Navigation</h3>
+<ul>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/">Pipelining with Python</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/basics/">Basic syntax</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/scripts/">Scripts and imports</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-intro/">Snakemake</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-snakefiles/">Snakefiles</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-wildcards/">Wildcards</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-patterns/">Pattern Rules</a>
+	</li>
+	
+</ul>
+
+
+		
+
+	</div>
+</div>
+<div class="clearer"></div>
+</div>
+			<div class="footer">
+	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
+	|
+	Powered by <a href="http://gohugo.io/">Hugo 0.25.1</a>
+	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
+	
+</div>
+
+
+
+
+			
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+			
+
+			
+		</div>
+	</body>
+</html>

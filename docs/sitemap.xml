@@ -16,14 +16,50 @@
   </url>
   
   <url>
+    <loc>https://jstaf.github.io/hpc-python/sm-intro/</loc>
+  </url>
+  
+  <url>
+    <loc>https://jstaf.github.io/hpc-python/sm-snakefiles/</loc>
+  </url>
+  
+  <url>
+    <loc>https://jstaf.github.io/hpc-python/sm-wildcards/</loc>
+  </url>
+  
+  <url>
+    <loc>https://jstaf.github.io/hpc-python/sm-patterns/</loc>
+  </url>
+  
+  <url>
     <loc>https://jstaf.github.io/hpc-python/categories/</loc>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://jstaf.github.io/hpc-python/09-final-notes/</loc>
   </url>
   
   <url>
     <loc>https://jstaf.github.io/hpc-python/</loc>
     <lastmod>2016-04-23T15:21:22+02:00</lastmod>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://jstaf.github.io/hpc-python/07-logging/</loc>
+  </url>
+  
+  <url>
+    <loc>https://jstaf.github.io/hpc-python/06-resources/</loc>
+  </url>
+  
+  <url>
+    <loc>https://jstaf.github.io/hpc-python/08-cluster/</loc>
+  </url>
+  
+  <url>
+    <loc>https://jstaf.github.io/hpc-python/sm-python/</loc>
   </url>
   
   <url>
