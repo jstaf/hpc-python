@@ -7,7 +7,7 @@
 	<meta name="description" content="Writing analysis pipelines with Python">
 	<meta name="generator" content="Hugo 0.25.1" />
 	
-	<title> HPC Python</title>
+	<title>Logging &mdash; HPC Python</title>
 	
 	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
 	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
@@ -23,44 +23,66 @@
 				<div class="bodywrapper">
 					<div class="body" role="main">
 						
+	<h1>Logging</h1>
 	
-		<h1>Pipelining with Python</h1>
-		
+	
 
-<p>Python is probably the most versatile language in existence.
-However one of its most useful features is its ability to tie things
-together and automate the execution of other programs.</p>
+<p>By default, Snakemake prints all output from stderr and stdout from rules.
+This is useful, but if a failure occurs (or we otherwise need to inspect the logs)
+it can be extremely difficult to determine what happened
+or which rule had an issue.</p>
 
-<p>This tutorial focuses on using Python in HPC environments to automate
-data analysis pipelines.
-We&rsquo;ll start with the basics and cover everything you need to get started
-writing pipelines.
-Some elements of writing performance-oriented code will be covered,
-but it is not the main focus.
-There is no prerequisite knowlege for this tutorial.</p>
+<p>The solution to this issue is to redirect the output from each rule/
+set of inputs to a dedicated logfile.
+We can do this using the <code>log</code> keyword.
+Let&rsquo;s modify our <code>count_words</code> rule to be slighly more verbose and redirect
+this output to a dedicated logfile.</p>
 
-<h2 id="setup">Setup</h2>
+<p>Two things before we start:</p>
 
-<p>You will want to have Python 3 and your favorite Python IDE preinstalled
-and ready to go.
-If you don&rsquo;t know where to get things or what to install,
-just install Anaconda (the Python 3 version) from <a href="https://www.continuum.io/downloads">https://www.continuum.io/downloads</a>.
-Anaconda is an extremely comprehensive Python distribution that comes
-with all of the bells and whistles ready to go.</p>
+<ul>
+<li><code>&amp;&gt;</code> is a handy operator in bash that redirects both stdout and stderr to a file.</li>
+<li><code>&amp;&gt;&gt;</code> does the same thing as <code>&amp;&gt;</code>, but appends to a file instead of overwriting it.</li>
+</ul>
 
-<p>To install snakemake, please run the following in a command-line terminal:</p>
-
-<pre><code>pip install --user snakemake
+<pre><code># count words in one of our &quot;books&quot;
+rule count_words:
+    input: 	
+        wc='wordcount.py',
+        book='books/{file}.txt'
+    output: 'dats/{file}.dat'
+    threads: 4
+    log: 'dats/{file}.log'
+    shell:
+        '''
+        echo &quot;Running {input.wc} with {threads} cores on {input.book}.&quot; &amp;&gt; {log}
+        python {input.wc} {input.book} {output} &amp;&gt;&gt; {log}
+        '''
 </code></pre>
 
-<h2 id="credits">Credits</h2>
+<pre><code>snakemake clean
+snakemake -j 8
+cat dats/abyss.log
+</code></pre>
 
-<p>The Snakemake materials were adapted from Software Carpentry&rsquo;s
-<a href="http://swcarpentry.github.io/make-novice/">Automation and Make</a> lesson.</p>
+<pre><code># snakemake output omitted
+Running wordcount.py with 4 cores on books/abyss.txt.
+</code></pre>
 
-<h2 id="get-started-basics"><a href="./basics/">Get started</a></h2>
+<p>Notice how the pipeline no longer prints to the pipeline&rsquo;s log,
+and instead redirects this to a logfile.</p>
 
-	
+<div class="admonition note">
+<p class="first admonition-title">Choosing a good logfile location</p>
+<p>Though you can put a log anywhere (and name it anything),
+it is often a good practice to put the log in the same directory
+where the rule&rsquo;s output will be created.
+If you need to investigate the output for a rule and associated logfiles,
+this means that you only have to check one location!</p>
+</div>
+
+<h2 id="next-section-cluster"><a href="../cluster/">Next section</a></h2>
+
 
 
 						

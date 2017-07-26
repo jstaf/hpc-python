@@ -1,21 +1,13 @@
 ---
 title: "Final notes"
-teaching: 15
-exercises: 15
-questions:
-- "What are some tips and tricks I can use to make this easier?"
-objectives:
-- "Understand how to make a DAG graph."
-keypoints:
-- "Token files can be used to take the place of output files if none are created."
-- "`snakemake --dag | dot -Tsvg > dag.svg` creates a graphic of your workflow."
-- "`snakemake --gui` opens a browser window with your workflow."
+menu: main
+weight: 19
 ---
 
 Now that we know how to write and scale a pipeline, 
 here are some tips and tricks for making the process go more smoothly.
 
-## `snakemake -n` is your friend
+## "snakemake -n" is your friend
 
 Whenever you edit your Snakefile, run `snakemake -n` immediately afterwards.
 This will check for errors and make sure that the pipeline is able to run.
@@ -75,7 +67,7 @@ snakemake --dag | dot -Tsvg > dag.svg
 eog dag.svg     # eog is an image viewer installed on many linux systems
 ```
 
-![Example DAG plot](../fig/05-final-dag.svg)
+![Example DAG plot](../05-final-dag.svg)
 
 Rules that have yet to be completed are indicated with solid outlines.
 Already completed tasks will be indicated with dashed outlines.
@@ -94,3 +86,6 @@ but it's cool to know it's there and can be used to view your workflow on the fl
 
 The Snakemake documentation is located at 
 [snakemake.readthedocs.io](http://snakemake.readthedocs.io)
+
+## [Back to frontpage](../)
+

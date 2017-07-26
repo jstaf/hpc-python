@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head lang="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+	<meta name="description" content="Writing analysis pipelines with Python">
+	<meta name="generator" content="Hugo 0.25.1" />
+	
+	<title>Final notes &mdash; HPC Python</title>
+	
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
+
+	
+
+	<link rel="shortcut icon" href="https://jstaf.github.io/hpc-python/favicon.ico" type="image/x-icon"/>
+</head>
+
+	<body role="document">
+		<div class="document">
+			<div class="documentwrapper">
+				<div class="bodywrapper">
+					<div class="body" role="main">
+						
+	<h1>Final notes</h1>
+	
+	
+
+<p>Now that we know how to write and scale a pipeline,
+here are some tips and tricks for making the process go more smoothly.</p>
+
+<h2 id="snakemake-n-is-your-friend">&ldquo;snakemake -n&rdquo; is your friend</h2>
+
+<p>Whenever you edit your Snakefile, run <code>snakemake -n</code> immediately afterwards.
+This will check for errors and make sure that the pipeline is able to run.</p>
+
+<p>The most common source of errors is a mismatch in filenames
+(Snakemake doesn&rsquo;t know how to produce a particular output file) -
+<code>snakemake -n</code> will catch this as long as the troublesome output files haven&rsquo;t already been made.</p>
+
+<h2 id="token-files">Token files</h2>
+
+<p>Often, a rule does not generate a unique output, and merely modifies a file.
+In these cases it is often worthwhile to create a placeholder, or &ldquo;token file&rdquo; as output.
+A token file is simply an empty file that you can create with the touch command
+(<code>touch some_file.txt</code> creates an empty file called <code>some_file.txt</code>).
+An example rule using this technique is shown below:</p>
+
+<pre><code>rule token_example:
+    input:  'some_file.txt'
+    output: 'some_file.tkn'   # marks some_file.txt as modified
+    shell:
+        '''
+        some_command --do-things {input} &amp;&amp;
+            touch {output}
+        '''
+</code></pre>
+
+<h2 id="directory-locks">Directory locks</h2>
+
+<p>Only one instance of Snakemake can run in a directory at a time.
+If a Snakemake run fails without unlocking the directory
+(if you killed the process, for instance), you can run
+<code>snakemake --unlock</code> to unlock it.</p>
+
+<h2 id="python-as-a-fallback">Python as a fallback</h2>
+
+<p>Remember, you can use Python imports and functions anywhere in a Snakefile.
+If something seems a little tricky to implement - Python can do it.
+The <code>os</code>, <code>shutil</code>, and <code>subprocess</code> packages are useful tools for using Python
+to execute command line actions.
+In particular, <code>os.system('some command')</code> will run a command on the command-line
+and block until execution is complete.</p>
+
+<h2 id="creating-a-workflow-diagram">Creating a workflow diagram</h2>
+
+<p>Assuming graphviz is installed (<code>conda install graphviz</code>),
+you can create a diagram of your workflow with the command:
+<code>snakemake --dag | dot -Tsvg &gt; dag.svg</code>.
+This creates a plot of your &ldquo;directed acyclic graph&rdquo;
+(a plot of all of the rules Snakemake thinks it needs to complete),
+which you can view using any picture viewing program.
+In fact this was the tool used to create all of the diagrams in this lesson:</p>
+
+<pre><code>snakemake --dag | dot -Tsvg &gt; dag.svg
+eog dag.svg     # eog is an image viewer installed on many linux systems
+</code></pre>
+
+<p><img src="../05-final-dag.svg" alt="Example DAG plot" /></p>
+
+<p>Rules that have yet to be completed are indicated with solid outlines.
+Already completed tasks will be indicated with dashed outlines.
+In this case, I ran <code>snakemake clean</code>, just before creating the diagram -
+no rules have been run yet.</p>
+
+<h2 id="viewing-the-gui">Viewing the GUI</h2>
+
+<p>Snakemake has an experimental web browser GUI.
+I personally haven&rsquo;t used it for anything,
+but it&rsquo;s cool to know it&rsquo;s there and can be used to view your workflow on the fly.</p>
+
+<p><code>snakemake --gui</code></p>
+
+<h2 id="where-to-go-for-documentation-help">Where to go for documentation / help</h2>
+
+<p>The Snakemake documentation is located at
+<a href="http://snakemake.readthedocs.io">snakemake.readthedocs.io</a></p>
+
+<h2 id="back-to-frontpage"><a href="../">Back to frontpage</a></h2>
+
+
+
+						
+					</div>
+				</div>
+			</div>
+			
+			<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+	<div class="sphinxsidebarwrapper">
+		<p class="logo">
+			<a href="https://jstaf.github.io/hpc-python/">
+				<img class="logo" src="https://jstaf.github.io/hpc-python/favicon.ico" alt="Logo"/>
+				<h1 class="logo logo-name">HPC Python</h1>
+			</a>
+		</p>
+		
+		<p class="blurb">Writing analysis pipelines with Python</p>
+
+		
+
+	
+
+	
+
+	
+		
+
+		
+
+<h3>Navigation</h3>
+<ul>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/">Pipelining with Python</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/basics/">Basic syntax</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/scripts/">Scripts and imports</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-intro/">Snakemake</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-snakefiles/">Snakefiles</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-wildcards/">Wildcards</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-patterns/">Pattern Rules</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-python/">Pipelines as Python code</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-resources/">Resources and parallelism</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-logging/">Logging</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-cluster/">Scaling across a cluster</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-final-notes/">Final notes</a>
+	</li>
+	
+</ul>
+
+
+		
+
+	</div>
+</div>
+<div class="clearer"></div>
+</div>
+			<div class="footer">
+	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
+	|
+	Powered by <a href="http://gohugo.io/">Hugo 0.25.1</a>
+	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
+	
+</div>
+
+
+
+
+			
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+			
+
+			
+		</div>
+	</body>
+</html>

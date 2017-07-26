@@ -87,54 +87,55 @@ rule count_words: input: wc=&#39;wordcount.py&#39;, book=&#39;books/{file}.txt&#
     </item>
     
     <item>
-      <title>Final notes</title>
-      <link>https://jstaf.github.io/hpc-python/09-final-notes/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://jstaf.github.io/hpc-python/09-final-notes/</guid>
-      <description>Now that we know how to write and scale a pipeline, here are some tips and tricks for making the process go more smoothly.
-snakemake -n is your friend Whenever you edit your Snakefile, run snakemake -n immediately afterwards. This will check for errors and make sure that the pipeline is able to run.
-The most common source of errors is a mismatch in filenames (Snakemake doesn&amp;rsquo;t know how to produce a particular output file) - snakemake -n will catch this as long as the troublesome output files haven&amp;rsquo;t already been made.</description>
-    </item>
-    
-    <item>
-      <title>Logging</title>
-      <link>https://jstaf.github.io/hpc-python/07-logging/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://jstaf.github.io/hpc-python/07-logging/</guid>
-      <description>By default, Snakemake prints all output from stderr and stdout from rules. This is useful, but if a failure occurs (or we otherwise need to inspect the logs) it can be extremely difficult to determine what happened or which rule had an issue.
-The solution to this issue is to redirect the output from each rule/ set of inputs to a dedicated logfile. We can do this using the log keyword.</description>
-    </item>
-    
-    <item>
-      <title>Resources and parallelism</title>
-      <link>https://jstaf.github.io/hpc-python/06-resources/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://jstaf.github.io/hpc-python/06-resources/</guid>
-      <description>After the excercises at the end of our last lesson, our Snakefile looks something like this:
-# our zipf analysis pipeline DATS = glob_wildcards(&#39;books/{book}.txt&#39;).book rule all: input: &#39;zipf_analysis.tar.gz&#39; # delete everything so we can re-run things rule clean: shell: &#39;&#39;&#39; rm -rf results dats plots rm -f results.txt zipf_analysis.tar.gz &#39;&#39;&#39; # count words in one of our &amp;quot;books&amp;quot; rule count_words: input: wc=&#39;wordcount.py&#39;, book=&#39;books/{file}.txt&#39; output: &#39;dats/{file}.dat&#39; shell: &#39;python {input.wc} {input.book} {output}&#39; # create a plot for each book rule make_plot: input: plotcount=&#39;plotcount.</description>
-    </item>
-    
-    <item>
-      <title>Scaling a pipeline across a cluster</title>
-      <link>https://jstaf.github.io/hpc-python/08-cluster/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://jstaf.github.io/hpc-python/08-cluster/</guid>
-      <description>Right now we have a reasonably effective pipeline that scales nicely on our local computer. However, for the sake of this course, we&amp;rsquo;ll pretend that our workflow actually takes significant computational resources and needs to be run on a cluster.
-HPC cluster architecture Most HPC clusters are run using a scheduler. The scheduler is a piece of software that handles which compute jobs are run when and where. It allows a set of users to share a shared computing system as efficiently as possible.</description>
-    </item>
-    
-    <item>
-      <title>Snakefiles are Python code</title>
+      <title>Pipelines as Python code</title>
       <link>https://jstaf.github.io/hpc-python/sm-python/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://jstaf.github.io/hpc-python/sm-python/</guid>
       <description>Despite our efforts, our pipeline still has repeated content, for instance the names of output files/dependencies. Our zipf_test rule, for instance, is extremely clunky. What happens if we want to analyze books/sierra.txt as well? We&amp;rsquo;d have to update everything!
 rule zipf_test: input: &#39;zipf_test.py&#39;, &#39;abyss.dat&#39;, &#39;last.dat&#39;, &#39;isles.dat&#39; output: &#39;results.txt&#39; shell: &#39;python {input[0]} {input[1]} {input[2]} {input[3]} &amp;gt; {output}&#39;  First, let&amp;rsquo;s cut down on a little bit of the clunkiness of the &amp;ldquo;shell&amp;rdquo; rule.</description>
+    </item>
+    
+    <item>
+      <title>Resources and parallelism</title>
+      <link>https://jstaf.github.io/hpc-python/sm-resources/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/sm-resources/</guid>
+      <description>After the excercises at the end of our last lesson, our Snakefile looks something like this:
+# our zipf analysis pipeline DATS = glob_wildcards(&#39;books/{book}.txt&#39;).book rule all: input: &#39;zipf_analysis.tar.gz&#39; # delete everything so we can re-run things rule clean: shell: &#39;&#39;&#39; rm -rf results dats plots rm -f results.txt zipf_analysis.tar.gz &#39;&#39;&#39; # count words in one of our &amp;quot;books&amp;quot; rule count_words: input: wc=&#39;wordcount.py&#39;, book=&#39;books/{file}.txt&#39; output: &#39;dats/{file}.dat&#39; shell: &#39;python {input.wc} {input.book} {output}&#39; # create a plot for each book rule make_plot: input: plotcount=&#39;plotcount.</description>
+    </item>
+    
+    <item>
+      <title>Logging</title>
+      <link>https://jstaf.github.io/hpc-python/sm-logging/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/sm-logging/</guid>
+      <description>By default, Snakemake prints all output from stderr and stdout from rules. This is useful, but if a failure occurs (or we otherwise need to inspect the logs) it can be extremely difficult to determine what happened or which rule had an issue.
+The solution to this issue is to redirect the output from each rule/ set of inputs to a dedicated logfile. We can do this using the log keyword.</description>
+    </item>
+    
+    <item>
+      <title>Scaling across a cluster</title>
+      <link>https://jstaf.github.io/hpc-python/sm-cluster/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/sm-cluster/</guid>
+      <description>Right now we have a reasonably effective pipeline that scales nicely on our local computer. However, for the sake of this course, we&amp;rsquo;ll pretend that our workflow actually takes significant computational resources and needs to be run on a cluster.
+HPC cluster architecture
+Most HPC clusters are run using a scheduler. The scheduler is a piece of software that handles which compute jobs are run when and where. It allows a set of users to share a shared computing system as efficiently as possible.</description>
+    </item>
+    
+    <item>
+      <title>Final notes</title>
+      <link>https://jstaf.github.io/hpc-python/sm-final-notes/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/sm-final-notes/</guid>
+      <description>Now that we know how to write and scale a pipeline, here are some tips and tricks for making the process go more smoothly.
+&amp;ldquo;snakemake -n&amp;rdquo; is your friend Whenever you edit your Snakefile, run snakemake -n immediately afterwards. This will check for errors and make sure that the pipeline is able to run.
+The most common source of errors is a mismatch in filenames (Snakemake doesn&amp;rsquo;t know how to produce a particular output file) - snakemake -n will catch this as long as the troublesome output files haven&amp;rsquo;t already been made.</description>
     </item>
     
   </channel>

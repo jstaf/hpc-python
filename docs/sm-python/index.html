@@ -7,7 +7,7 @@
 	<meta name="description" content="Writing analysis pipelines with Python">
 	<meta name="generator" content="Hugo 0.25.1" />
 	
-	<title>Snakefiles are Python code &mdash; HPC Python</title>
+	<title>Pipelines as Python code &mdash; HPC Python</title>
 	
 	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
 	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
@@ -23,7 +23,7 @@
 				<div class="bodywrapper">
 					<div class="body" role="main">
 						
-	<h1>Snakefiles are Python code</h1>
+	<h1>Pipelines as Python code</h1>
 	
 	
 
@@ -215,7 +215,9 @@ these functions are always imported for you.</p>
 <code>expand()</code> is used quite literally,
 to expand a snakemake wildcard(s) into a set of filenames.</p>
 
-<pre><code>expand('folder/{wildcard1}_{wildcard2}.txt', wildcard1=['a', 'b', 'c'], wildcard2=[1, 2, 3])
+<pre><code>expand('folder/{wildcard1}_{wildcard2}.txt', 
+       wildcard1=['a', 'b', 'c'], 
+       wildcard2=[1, 2, 3])
 </code></pre>
 
 <pre><code>['folder/a_1.txt',
@@ -256,12 +258,12 @@ property from the output of <code>glob_wildcards()</code></p>
 <pre><code>['isles', 'last', 'abyss', 'sierra']
 </code></pre>
 
-<h2 id="putting-it-all-together">Putting it all together</h2>
-
+<div class="admonition ">
+<p class="first admonition-title">Putting it all together</p>
 <p>Using the <code>expand()</code> and <code>glob_wildcards()</code> functions,
 modify the pipeline so that it automatically detects and analyzes
-all the files in the <code>books/</code> folder.
-{: .challenge}</p>
+all the files in the <code>books/</code> folder.</p>
+</div>
 
 <h2 id="using-python-code-as-actions">Using Python code as actions</h2>
 
@@ -308,16 +310,16 @@ Finished job 0.
 1 of 1 steps (100%) done
 </code></pre>
 
-<h2 id="moving-output-locations">Moving output locations</h2>
-
+<div class="admonition ">
+<p class="first admonition-title">Exercise - Moving output locations</p>
 <p>Alter the rules in your Snakefile so that the <code>.dat</code> files are created in
 their own <code>dats/</code> folder.
 Note that creating this folder beforehand is unnecessary.
-Snakemake automatically create any folders for you, as needed.
-{: .challenge}</p>
+Snakemake automatically create any folders for you, as needed.</p>
+</div>
 
-<h2 id="creating-pngs">Creating PNGs</h2>
-
+<div class="admonition ">
+<p class="first admonition-title">Exercise - Creating PNGs</p>
 <p>Add new rules and update existing rules to:</p>
 
 <ul>
@@ -333,11 +335,11 @@ Add an <code>all</code> target to your Snakefile (Hint: this rule
 has the <code>results.txt</code> file and the <code>.png</code> files as dependencies, but
 no actions).  With that in place, instead of running <code>make
 results.txt</code>, you should now run <code>snakemake all</code>, or just simply
-<code>snakemake</code>.
-{: .challenge}</p>
+<code>snakemake</code>.</p>
+</div>
 
-<h2 id="creating-an-archive">Creating an Archive</h2>
-
+<div class="admonition ">
+<p class="first admonition-title">Exercise - Creating an archive</p>
 <p>Update your pipeline to:</p>
 
 <ul>
@@ -351,15 +353,15 @@ results.txt</code>, you should now run <code>snakemake all</code>, or just simpl
 
 <pre><code>tar -czvf zipf_analysis.tar.gz file1 directory2 file3 etc
 </code></pre>
-
-<p>{: .challenge}</p>
+</p>
+</div>
 
 <p>After these excercises our final workflow should look something like the following:</p>
 
-<p><img src="../fig/05-final-dag.svg" alt="Final directed acyclic graph" /></p>
+<p><img src="../05-final-dag.svg" alt="Final directed acyclic graph" /></p>
 
-<h2 id="adding-more-books">Adding more books</h2>
-
+<div class="admonition ">
+<p class="first admonition-title">Exercise - Adding more books</p>
 <p>We can now do a better job at testing Zipf&rsquo;s rule by adding more books.
 The books we have used come from the <a href="http://www.gutenberg.org/">Project Gutenberg</a> website.
 Project Gutenberg offers thousands of free ebooks to download.</p>
@@ -374,9 +376,12 @@ choose a short name for the file</li>
 <li>optionally, open the file in a text editor and remove extraneous text at the beginning and end
 (look for the phrase <code>End of Project Gutenberg's [title], by [author]</code>)</li>
 <li>run <code>snakemake</code> and check that the correct commands are run</li>
-<li>check the results.txt file to see how this book compares to the others
-{: .challenge}</li>
+<li>check the results.txt file to see how this book compares to the others</li>
 </ul>
+</p>
+</div>
+
+<h2 id="next-section-sm-resources"><a href="../sm-resources/">Next section</a></h2>
 
 
 
@@ -436,6 +441,26 @@ choose a short name for the file</li>
 	
 	<li class="toctree-l1">
 		<a class="reference internal" href="/hpc-python/sm-patterns/">Pattern Rules</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-python/">Pipelines as Python code</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-resources/">Resources and parallelism</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-logging/">Logging</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-cluster/">Scaling across a cluster</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-final-notes/">Final notes</a>
 	</li>
 	
 </ul>

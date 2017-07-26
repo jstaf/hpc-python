@@ -1,16 +1,7 @@
 ---
 title: "Resources and parallelism"
-teaching: 30
-exercises: 15
-questions:
-- "How do I scale a pipeline across multiple cores?"
-- "How do I manage access to resources while working in parallel?"
-objectives:
-- "Modify your pipeline to run in parallel."
-keypoints:
-- "Use `threads` to indicate the number of cores used by a rule."
-- "Resources are arbitrary and can be used for anything."
-- "The `&&` operator is a useful tool when chaining bash commands."
+menu: main
+weight: 16
 ---
 
 After the excercises at the end of our last lesson, 
@@ -104,7 +95,7 @@ Our pipeline ran in parallel and finished roughly 4 times as quickly!
 The takeaway here is that all we need to do to scale from a 
 serial pipeline is run `snakemake` with the `-j` option.
 
-## How many CPUs does your computer have?
+{{<admonition title="How many CPUs does your computer have?" type="note">}}
 
 Now that we can have our pipeline use multiple CPUs,
 how do we know how many CPUs to provide to the `-j` option?
@@ -121,8 +112,7 @@ Using `logical=False` returns the number of true CPU cores.
 import psutil
 psutil.cpu_count(logical=False)
 ```
-
-{: .callout}
+{{</admonition>}}
 
 ## Managing CPUs
 
@@ -258,7 +248,6 @@ rule count_words:
 ```
 
 
-
 ## Managing other types of resources
 
 Not all compute resources are CPUs. 
@@ -334,4 +323,6 @@ In all of these cases, `resources` can be used to constrain access
 to arbitrary compute resources so that each rule can run at it's most efficient.
 Snakemake will run your rules in such a way as to maximize throughput given your
 resource constraints.
+
+## [Next section](../sm-logging/)
 

@@ -1,16 +1,7 @@
 ---
-title: "Scaling a pipeline across a cluster"
-teaching: 30
-exercises: 15
-questions:
-- "How do I scale my workflow across an HPC cluster?"
-objectives:
-- "Understand the Snakemake cluster job submission workflow."
-keypoints:
-- "Snakemake generates and submits its own batch scripts for your scheduler."
-- "`localrules` defines rules that are executed on the Snakemake headnode."
-- "`$PATH` must be passed to Snakemake rules."
-- "`nohup <command> &` prevents `<command>` from exiting when you log off."
+title: "Scaling across a cluster"
+menu: main
+weight: 18
 ---
 
 Right now we have a reasonably effective pipeline that scales nicely on our local computer.
@@ -18,8 +9,7 @@ However, for the sake of this course,
 we'll pretend that our workflow actually takes significant computational resources 
 and needs to be run on a cluster.
 
-## HPC cluster architecture
-
+{{<admonition title="HPC cluster architecture" type="note">}}
 Most HPC clusters are run using a scheduler.
 The scheduler is a piece of software that handles which compute jobs are run when and where.
 It allows a set of users to share a shared computing system as efficiently as possible.
@@ -30,7 +20,7 @@ A good analogy would be a university's room booking system.
 No one gets to use a room without going through the booking system.
 The booking system decides which rooms people get based on their requirements 
 (# of students, time allotted, etc.).
-{: .callout}
+{{</admonition>}}
 
 Normally, moving a workflow to be run by a cluster scheduler requires a lot of work.
 Batch scripts need to be written, and you'll need to monitor and babysit the status of each of your jobs.
@@ -119,7 +109,6 @@ Let's port our workflow to Compute Canada's Graham cluster as an example
 The first step will be to transfer our files to the cluster and log on via SSH.
 Snakemake has a powerful archiving utility that we can use to bundle up our workflow and transfer it.
 
-
 ```
 snakemake clean
 tar -czvf pipeline.tar.gz .
@@ -129,9 +118,7 @@ scp pipeline.tar.gz yourUsername@graham.computecanada.ca:
 ssh -X yourUsername@graham.computecanada.ca
 ```
 
-
-## `snakemake --archive` and Conda deployment
-
+{{<admonition title="'snakemake --archive' and Conda deployment" type="note">}}
 Snakemake has a built-in method to archive all input files 
 and scripts under version control: `snakemake --archive`.
 What's more, it also installs any required dependencies if they can be installed
@@ -139,7 +126,7 @@ using Anaconda's `conda` package manager.
 
 For more information on how to use this feature, see 
 [http://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html](http://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html)
-{: .callout}
+{{</admonition>}}
 
 At this point we've archived our entire pipeline, sent it to the cluster, and logged on.
 Let's create a folder for our pipeline and unpack it there.
@@ -150,7 +137,6 @@ mv pipeline.tar.gz pipeline
 cd pipeline
 tar -xvzf pipeline.tar.gz
 ```
-
 
 If Snakemake and Python are not already installed on your cluster, 
 you can install them using the following commands:
@@ -214,7 +200,6 @@ Let's define `all`, `clean`, and `make_archive` as localrules near the top of ou
 localrules: all, clean, make_archive
 ```
 
-
 ## Running our workflow on the cluster
 
 Ok, time for the moment we've all been waiting for - let's run our workflow on the cluster.
@@ -222,7 +207,6 @@ To run our Snakefile, we'll run the following command:
 ```
 snakemake -j 100 --cluster-config cluster.json --cluster "sbatch -A {cluster.account} --mem={cluster.mem} -t {cluster.time} -c {threads}"
 ```
-
 
 While things execute, you may wish to SSH to the cluster in another window so you can watch the pipeline's progress
 with `watch squeue -u $(whoami)`.
@@ -235,7 +219,7 @@ In the meantime, let's dissect the command we just ran.
 
 **`--cluster`** - This is the submission command that should be used for the scheduler. Note that command flags that normally are put in batch scripts are put here (most schedulers allow you to add submission flags like this when submitting a job). In this case, all of the values come from our `--cluster-config` file. You can access individual values with `{cluster.propertyName}`. Note that we can still use `{threads}` here. 
 
-## Notes on `$PATH`
+## Notes on $PATH
 
 As with any cluster jobs, jobs started by Snakemake need to have the commands they are running on `$PATH`.
 For some schedulers (SLURM), no modifications are necessary - variables are passed to the jobs by default.
@@ -248,7 +232,7 @@ If this is not possible, you have several options:
 * Inserting `shell.prefix('some command')` in a Snakefile means that all rules run will be prefixed by `some_command`. You can use this to modify `$PATH`, eg. `shell.prefix('PATH=/extra/directory:$PATH ')`.
 * You can modify rules directly to run the appropriate `module load` commands beforehand. This is not recommended, only if because it is more work than the other options available.
 
-## Submitting a workflow with nohup
+{{<admonition title="Submitting a workflow with nohup">}}
 
 `nohup some_command &` runs a command in the background and lets it keep running if you log off.
 Try running the pipeline in cluster mode using `nohup` (run `snakemake clean` beforehand).
@@ -260,4 +244,7 @@ Where does the Snakemake command run in each scenario?
 You can kill the running Snakemake process with `killall snakemake`.
 Notice that if you try to run Snakemake again, it says the directory is locked.
 You can unlock the directory with `snakemake --unlock`.
-{: .challenge}
+{{</admonition>}}
+
+## [Next section](../final-notes/)
+

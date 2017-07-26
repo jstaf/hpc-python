@@ -1,17 +1,7 @@
 ---
-title: "Snakefiles are Python code"
-teaching: 30
-exercises: 15
-questions:
-- "How can I automatically manage dependencies and outputs?"
-- "How can I use Python code to add features to my pipeline?"
-objectives:
-- "Use variables, functions, and imports in a Snakefile."
-- "Learn to use the `run` action to execute Python code as an action."
-keypoints:
-- "Snakefiles are Python code."
-- "The entire Snakefile is executed whenever you run `snakemake`."
-- "All actual work should be done by rules."
+title: "Pipelines as Python code"
+menu: main
+weight: 15
 ---
 
 Despite our efforts, our pipeline still has repeated content, 
@@ -27,7 +17,6 @@ rule zipf_test:
     shell:  'python {input[0]} {input[1]} {input[2]} {input[3]} > {output}'
 ```
 
-
 First, let's cut down on a little bit of the clunkiness of the "shell" rule.
 One thing you've probably noticed is that all of our rules are using Python strings.
 Other data structures work too - let's try a list:
@@ -40,7 +29,6 @@ rule zipf_test:
     output: 'results.txt'
     shell:  'python {input.zipf} {input.books} > {output}'
 ```
-
 
 (`snakemake clean` and `snakemake -p` should show that the pipeline still works!)
 
@@ -225,7 +213,9 @@ The first function we'll use is `expand()`.
 to expand a snakemake wildcard(s) into a set of filenames.
 
 ```
-expand('folder/{wildcard1}_{wildcard2}.txt', wildcard1=['a', 'b', 'c'], wildcard2=[1, 2, 3])
+expand('folder/{wildcard1}_{wildcard2}.txt', 
+       wildcard1=['a', 'b', 'c'], 
+       wildcard2=[1, 2, 3])
 ```
 
 ```
@@ -274,12 +264,12 @@ glob_wildcards('books/{example}.txt').example
 ```
 
 
-## Putting it all together
+{{<admonition title="Putting it all together">}}
 
 Using the `expand()` and `glob_wildcards()` functions,
 modify the pipeline so that it automatically detects and analyzes 
 all the files in the `books/` folder.
-{: .challenge}
+{{</admonition>}}
 
 ## Using Python code as actions
 
@@ -331,16 +321,14 @@ Finished job 0.
 ```
 
 
-## Moving output locations
-
+{{<admonition title="Exercise - Moving output locations">}}
 Alter the rules in your Snakefile so that the `.dat` files are created in 
 their own `dats/` folder.
 Note that creating this folder beforehand is unnecessary. 
 Snakemake automatically create any folders for you, as needed.
-{: .challenge}
+{{</admonition>}}
 
-## Creating PNGs
-
+{{<admonition title="Exercise - Creating PNGs">}}
 Add new rules and update existing rules to:
 
 * Create `.png` files from `.dat` files using `plotcount.py`.
@@ -355,10 +343,10 @@ has the `results.txt` file and the `.png` files as dependencies, but
 no actions).  With that in place, instead of running `make
 results.txt`, you should now run `snakemake all`, or just simply
 `snakemake`. 
-{: .challenge}
+{{</admonition>}}
 
-## Creating an Archive
 
+{{<admonition title="Exercise - Creating an archive">}}
 Update your pipeline to:
 
 * Create an archive, `zipf_analysis.tar.gz`, to hold all our
@@ -370,14 +358,13 @@ The syntax to create an archive is shown below:
 ```
 tar -czvf zipf_analysis.tar.gz file1 directory2 file3 etc
 ```
-
-{: .challenge}
+{{</admonition>}}
 
 After these excercises our final workflow should look something like the following:
 
-![Final directed acyclic graph](../fig/05-final-dag.svg)
+![Final directed acyclic graph](../05-final-dag.svg)
 
-## Adding more books
+{{<admonition title="Exercise - Adding more books">}}
 
 We can now do a better job at testing Zipf's rule by adding more books. 
 The books we have used come from the [Project Gutenberg](http://www.gutenberg.org/) website.
@@ -393,5 +380,7 @@ choose a short name for the file
 (look for the phrase `End of Project Gutenberg's [title], by [author]`)
 * run `snakemake` and check that the correct commands are run
 * check the results.txt file to see how this book compares to the others
-{: .challenge}
+{{</admonition>}}
+
+## [Next section](../sm-resources/)
 

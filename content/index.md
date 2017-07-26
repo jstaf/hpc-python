@@ -27,6 +27,11 @@ just install Anaconda (the Python 3 version) from [https://www.continuum.io/down
 Anaconda is an extremely comprehensive Python distribution that comes 
 with all of the bells and whistles ready to go.
 
+To install snakemake, please run the following in a command-line terminal:
+```
+pip install --user snakemake
+```
+
 ## Credits
 
 The Snakemake materials were adapted from Software Carpentry's 
