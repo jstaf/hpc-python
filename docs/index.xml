@@ -21,5 +21,26 @@
 This tutorial focuses on using Python in HPC environments to automate data analysis pipelines. We&amp;rsquo;ll start with the basics and cover everything you need to get started writing pipelines. Some elements of writing performance-oriented code will be covered, but it is not the main focus.</description>
     </item>
     
+    <item>
+      <title>Basic syntax</title>
+      <link>https://jstaf.github.io/hpc-python/basics/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/basics/</guid>
+      <description>The most basic use of Python is to use it as a fancy calculator. It is very easy to do basic math in Python.
+print(5 + 1)  6  Note that we don&amp;rsquo;t always have to use the print() statement. Notice how leaving out print() gives us the same result as above.
+5 + 1  6  Python can do all of the normal basic math operations you&amp;rsquo;d expect.</description>
+    </item>
+    
+    <item>
+      <title>Scripts and imports</title>
+      <link>https://jstaf.github.io/hpc-python/scripts/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/scripts/</guid>
+      <description>Everything we&amp;rsquo;ve learned so far is pretty cool. But if we want to run a set of commands more than once? How do we write a program in Python?
+Python programs are simply a set of Python commands saved in a file. No compiling required! To demonstrate this, let&amp;rsquo;s write our first program! Enter the following text in a text editor and save it under any name you like (Python files are typically given the extension .</description>
+    </item>
+    
   </channel>
 </rss>

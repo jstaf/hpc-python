@@ -1,0 +1,496 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head lang="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+	<meta name="description" content="Writing analysis pipelines with Python">
+	<meta name="generator" content="Hugo 0.25.1" />
+	
+	<title>Basic syntax &mdash; HPC Python</title>
+	
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
+
+	
+
+	<link rel="shortcut icon" href="https://jstaf.github.io/hpc-python/favicon.ico" type="image/x-icon"/>
+</head>
+
+	<body role="document">
+		<div class="document">
+			<div class="documentwrapper">
+				<div class="bodywrapper">
+					<div class="body" role="main">
+						
+	<h1>Basic syntax</h1>
+	
+	
+
+<p>The most basic use of Python is to use it as a fancy calculator.
+It is very easy to do basic math in Python.</p>
+
+<pre><code class="language-python">print(5 + 1)
+</code></pre>
+
+<pre><code>6
+</code></pre>
+
+<p>Note that we don&rsquo;t always have to use the <code>print()</code> statement.
+Notice how leaving out <code>print()</code> gives us the same result as above.</p>
+
+<pre><code class="language-python">5 + 1
+</code></pre>
+
+<pre><code>6
+</code></pre>
+
+<p>Python can do all of the normal basic math operations you&rsquo;d expect.</p>
+
+<pre><code class="language-python">5 + 3
+2 - 9
+4 * 6
+14 / 3
+</code></pre>
+
+<pre><code>8
+-7
+24
+4.666666666666667
+</code></pre>
+
+<p>You can also use it to more complicated operations, like exponentiation (<code>**</code>):</p>
+
+<pre><code class="language-python">5 ** 2
+</code></pre>
+
+<pre><code>25
+</code></pre>
+
+<p>Along with floor and remainder division.
+Floor division (<code>//</code>) gives the results of division, rounded down.
+Remainder division (<code>%</code>), gives the remainder after division.</p>
+
+<pre><code class="language-python">5 // 2  # floor division
+5 % 2   # remainder division
+</code></pre>
+
+<pre><code>2
+1
+</code></pre>
+
+<p>Python follows the normal order of operations for math.</p>
+
+<pre><code class="language-python">4 + 1 * 6
+</code></pre>
+
+<pre><code>10
+</code></pre>
+
+<p>However, if you want Python to change the order it does things in,
+you can use parentheses to specify what to do first.
+Note that there is no limit to the number of parentheses you can use.</p>
+
+<pre><code class="language-python">(4 + 1) * 6
+</code></pre>
+
+<pre><code>30
+</code></pre>
+
+<h2 id="variables">Variables</h2>
+
+<p>Of course, we will probably want to save our answers at some point.
+We can do this by <em>assigning a variable</em>.
+In Python, a variable is a name for a saved result.
+We can set them with the <code>=</code> sign.</p>
+
+<pre><code class="language-python">weight_kg = 55
+</code></pre>
+
+<p>If we want to retrieve the information we&rsquo;ve stored,
+we can do it by simply typing the name of the variable again.</p>
+
+<pre><code class="language-python">weight_kg
+</code></pre>
+
+<pre><code>55
+</code></pre>
+
+<p>We can perform math on variables the same way we would normally.</p>
+
+<pre><code class="language-python">print('weight in pounds:', 2.2 * weight_kg)
+</code></pre>
+
+<pre><code>weight in pounds: 121.00000000000001
+</code></pre>
+
+<p>As the example above shows, we can print several things at once by separating them with commas.
+Note that in this case, the number might appear as 121.00000000000001 due to the way numbers are internally represented in Python.</p>
+
+<p>We can also change a variable’s value by assigning it a new one:</p>
+
+<pre><code class="language-python">weight_lb = 2.2 * weight_kg
+print(weight_lb)
+</code></pre>
+
+<pre><code>121.00000000000001
+</code></pre>
+
+<p>What happens when we change a variable?
+Let&rsquo;s update <code>weight_kg</code> and see what happens to <code>weight_lb</code>.</p>
+
+<pre><code class="language-python">print('weight_kg starting value is', weight_kg)
+weight_kg = 10000
+print('after updating, weight_kg ending value is', weight_kg)
+print('weight in lb ending value is', weight_lb)
+</code></pre>
+
+<pre><code>weight_kg starting value is 55
+after updating, weight_kg ending value is 10000
+weight in lb ending value is 121.00000000000001
+</code></pre>
+
+<p>Notice how even though we changed the value of <code>weight_kg</code>, <code>weight_lb</code> did not update.
+This demonstrates a very important property of programming languages:
+a computer will not do anything unless you specifically tell it to - <strong>nothing ever happens automatically</strong>.
+This is different from the behavior of a spreadsheets,
+where a cell will automatically update when the cells it refers to are updated.</p>
+
+<p>If we want to tell Python to update <code>weight_lb</code> to reflect the new value of <code>weight_kg</code>,
+we will need to perform this operation explicitly.</p>
+
+<pre><code>weight_lb = weight_kg * 2.2
+print('new value for weight_lb is', weight_lb)
+</code></pre>
+
+<pre><code>new value for weight_lb is 22000.0
+</code></pre>
+
+<p>One more thing to note:
+what we just did is the best way to learn Python.
+Don&rsquo;t know how something works?
+Try it and find out!</p>
+
+<div class="admonition note">
+<p class="first admonition-title">Where do variables get stored?</p>
+<p>Your computer has two places where it stores information: hard disk and memory.
+What are they and what are they used for?
+Where do variables get stored?</p>
+
+<p>Memory is where temporary information on your computer gets placed.
+It is very fast and easy to access, but has one important drawback:
+data here is erased when your program quits or your computer shuts down.
+All information you save as variables in Python will be stored in memory!
+When programming, we always need to save our data as a file (on our hard disk) if we want to keep it!</p>
+
+<p>Your computer&rsquo;s hard disk is used to store information long-term.
+This is where files get stored, and the information on your hard drive is more or less permanent.
+Hard drives can also store lots of data very cheaply - a terabyte of hard drive space is very cheap, whereas the same amount of memory costs a lot more.
+So if hard drive space is permanent and super-cheap, why don&rsquo;t we use it to store all of our data?
+The biggest reason is speed - memory is typically hundreds, if not thousands of times faster to access.
+If we stored our variables to our hard disk, our programs would be incredibly slow!</p>
+</div>
+
+<h2 id="errors">Errors</h2>
+
+<p>Of course, not everything will always work perfectly.
+We are going to run into errors.
+For instance, what happens if we accidentally don&rsquo;t finish a command?</p>
+
+<pre><code>1 + 
+</code></pre>
+
+<pre><code>SyntaxError: invalid syntax (&lt;ipython-input-15-70475fc083df, line 1)
+  File &quot;&lt;ipython-input-15-70475fc083df&quot;, line 1
+    1 +
+       ^
+SyntaxError: invalid syntax
+</code></pre>
+
+<p>This is an error. Errors are good!
+When we do something that Python doesn&rsquo;t like, it will give us an error message.
+These error messages are called tracebacks, and often tell us exactly how to fix our stuff!</p>
+
+<h3 id="let-s-walk-through-this-error">Let&rsquo;s walk through this error:</h3>
+
+<pre><code>SyntaxError: invalid syntax
+</code></pre>
+
+<p>All errors have types.
+This one is a SyntaxError, indicating, well&hellip; an error in our syntax.
+Syntax is &ldquo;computer-speak&rdquo; for how things are supposed to be typed.
+Python only understands certain commands, and typos will mess it up.
+If we type a command in such a way that Python can&rsquo;t understand it, we need to fix our syntax
+(make sure we&rsquo;ve typed a valid command).
+<strong>Takeaway message: We made an error when typing things.</strong></p>
+
+<pre><code>File &quot;&lt;ipython-input-15-70475fc083df&quot;, line 1
+    1 +
+       ^
+</code></pre>
+
+<p>Python is trying to be helpful and tell us exactly where our error occured.
+The first thing it does is tell us which file had the error in it.
+Since we are using the terminal,
+it gives us the semi-confusing <code>&lt;ipython-input-15-70475fc083df</code> instead of a filename.</p>
+
+<p>The <code>line 1</code> bit tells us that our error was on line 1 of our last command.
+Specifically, Python has printed out the offending line for us,
+and pointed an arrow (<code>^</code>) at the bad part.
+<strong>Takeaway message: The error came right after we typed the <code>+</code> sign.</strong></p>
+
+<h2 id="different-types-of-data">Different types of data</h2>
+
+<p>Computers are not smart, and have to be explicitly told how to handle different types of data.
+Although a human might know that you can&rsquo;t do math on a word,
+our computer does not.
+To work around this problem, programming languages store different types of data in different ways.</p>
+
+<p>For reasons that are likely obvious, we will need to store text differently than numbers.
+What is less obvious is that Python also has special ways of handling integers vs. decmials,
+boolean values (True/False), and a special value used to indicate no data whatsoever.</p>
+
+<h3 id="strings">Strings</h3>
+
+<p>We&rsquo;ve already encountered 3 of these &ldquo;data types&rdquo; already.
+The first is strings, which are used to store text.
+Strings are indicated with either single (<code>'</code>) or double (<code>&quot;</code>) quotes.</p>
+
+<p>To see what data type something is, we can use the <code>type()</code> command.
+It will print the data type of whatever is inside the parentheses.</p>
+
+<pre><code>type('this is a string')
+type(&quot;this is also a string&quot;)
+</code></pre>
+
+<pre><code>str
+str
+</code></pre>
+
+<p>We can also make multiline strings with 3 of either set of quotes.</p>
+
+<pre><code>multiline = '''
+    This string 
+    spans
+    multiple
+    lines
+    !!!!
+    '''
+print(multiline)
+type(multiline)
+</code></pre>
+
+<pre><code>This string
+spans
+multiple
+lines
+!!!!
+
+str
+</code></pre>
+
+<p>Python makes it very easy to work with basic text.
+For instance, we can even use the <code>+</code> sign to put strings together!</p>
+
+<pre><code>'some text' + 'MORE TEXT'
+'repetition' * 3
+</code></pre>
+
+<pre><code>'some textMORE TEXT'
+'repetitionrepetitionrepetition'
+</code></pre>
+
+<p>Note that math operations on strings will only work within reason.
+Attempting to add a string to a number doesn&rsquo;t work!</p>
+
+<pre><code>'5' + 5
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+&lt;ipython-input-41-f9dbf5f0b234 in &lt;module()
+---- 1 '5' + 5
+
+TypeError: Can't convert 'int' object to str implicitly
+</code></pre>
+
+<p>This error indicates that Python doesn&rsquo;t know how to convert a string to an integer (without our help)!</p>
+
+<h3 id="numbers">Numbers</h3>
+
+<p>Integers are used to store any whole number, either positive or negative.
+Any number without a decimal place is an int, or integer.</p>
+
+<pre><code>type(5)
+type(-1000)
+type(6 + -33)
+</code></pre>
+
+<pre><code>int
+int
+int
+</code></pre>
+
+<p>But what happens when we perform a math operation that would result in a decimal?</p>
+
+<pre><code>type(10 / 3)
+</code></pre>
+
+<pre><code>float
+</code></pre>
+
+<p>Any operation that would result in a decimal being created converts the number to a &ldquo;float&rdquo;.
+Floats are used to represent decimals in Python.
+To explicitly set a number as a float, just add a decimal point.</p>
+
+<pre><code>type(1.3)
+type(22.)
+</code></pre>
+
+<pre><code>float
+float
+</code></pre>
+
+<h3 id="other-data-types">Other data types</h3>
+
+<p>Python has two special &ldquo;boolean&rdquo; values to indicate whether or not something is true or false.
+Unsurprisingly, these are defined as <code>True</code> and <code>False</code>.</p>
+
+<pre><code>type(True)
+type(False)
+</code></pre>
+
+<pre><code>bool
+bool
+</code></pre>
+
+<p>Finally, there is a special value called <code>None</code> used to indicate no data.
+We will revisit <code>None</code> in more detail later, so for now, just be aware it exists.</p>
+
+<pre><code>type(None)
+</code></pre>
+
+<pre><code>NoneType
+</code></pre>
+
+<div class="admonition ">
+<p class="first admonition-title">Converting between data types</p>
+<p>Data often isn&rsquo;t the format you want it to be.
+For instance, we got an error earlier while attempting to
+perform addition between a string and a number (<code>'5' + 5</code>).
+What if we really needed to do that?
+Fortunately, Python makes it rather easy to convert between data types.
+Each data type has a function used to convert another piece of data.</p>
+
+<p>To convert a string to an integer, for instance, we can use the <code>int()</code> command:</p>
+
+<pre><code>print(int('5') + 5)
+</code></pre>
+
+<pre><code>10
+</code></pre>
+
+<p>Likewise, we can use the following commands to convert data to other types:</p>
+
+<ul>
+<li><code>str()</code> - creates a string</li>
+<li><code>int()</code> - creates an integer</li>
+<li><code>float()</code> - creates a float</li>
+<li><code>bool()</code> - creates a boolean</li>
+</ul>
+
+<p>Using this information,
+see if you can fix the left side of these statments to equal the right side of each statement.
+Use only the commands shown above.</p>
+
+<pre><code>1 + '1' = '11'  
+'6' - 7 = -1  
+7.23 = 7  
+'5' = True  
+4 / 1.3 = 4  
+</code></pre>
+</p>
+</div>
+
+<div class="admonition ">
+<p class="first admonition-title">Exercise - Data type conversion pitfalls</p>
+<p>You may have noticed something weird when converting a float to an int in the last example.
+Is Python simply rounding floats to the nearest integer, or is it doing something else?</p>
+</div>
+
+<h2 id="next-section-scripts"><a href="../scripts/">Next section</a></h2>
+
+
+
+						
+					</div>
+				</div>
+			</div>
+			
+			<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+	<div class="sphinxsidebarwrapper">
+		<p class="logo">
+			<a href="https://jstaf.github.io/hpc-python/">
+				<img class="logo" src="https://jstaf.github.io/hpc-python/favicon.ico" alt="Logo"/>
+				<h1 class="logo logo-name">HPC Python</h1>
+			</a>
+		</p>
+		
+		<p class="blurb">Writing analysis pipelines with Python</p>
+
+		
+
+	
+
+	
+
+	
+		
+
+		
+
+<h3>Navigation</h3>
+<ul>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/">Pipelining with Python</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/basics/">Basic syntax</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/scripts/">Scripts and imports</a>
+	</li>
+	
+</ul>
+
+
+		
+
+	</div>
+</div>
+<div class="clearer"></div>
+</div>
+			<div class="footer">
+	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
+	|
+	Powered by <a href="http://gohugo.io/">Hugo 0.25.1</a>
+	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
+	
+</div>
+
+
+
+
+			
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+			
+
+			
+		</div>
+	</body>
+</html>

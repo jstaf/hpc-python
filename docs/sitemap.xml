@@ -8,6 +8,14 @@
   </url>
   
   <url>
+    <loc>https://jstaf.github.io/hpc-python/basics/</loc>
+  </url>
+  
+  <url>
+    <loc>https://jstaf.github.io/hpc-python/scripts/</loc>
+  </url>
+  
+  <url>
     <loc>https://jstaf.github.io/hpc-python/categories/</loc>
     <priority>0</priority>
   </url>

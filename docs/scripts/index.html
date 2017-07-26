@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head lang="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+	<meta name="description" content="Writing analysis pipelines with Python">
+	<meta name="generator" content="Hugo 0.25.1" />
+	
+	<title>Scripts and imports &mdash; HPC Python</title>
+	
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
+
+	
+
+	<link rel="shortcut icon" href="https://jstaf.github.io/hpc-python/favicon.ico" type="image/x-icon"/>
+</head>
+
+	<body role="document">
+		<div class="document">
+			<div class="documentwrapper">
+				<div class="bodywrapper">
+					<div class="body" role="main">
+						
+	<h1>Scripts and imports</h1>
+	
+	
+
+<p>Everything we&rsquo;ve learned so far is pretty cool.
+But if we want to run a set of commands more than once?
+How do we write a program in Python?</p>
+
+<p>Python programs are simply a set of Python commands saved in a file.
+No compiling required!
+To demonstrate this, let&rsquo;s write our first program!
+Enter the following text in a text editor and save it under any name you like
+(Python files are typically given the extension <code>.py</code>).</p>
+
+<pre><code>print('it works!!!')
+</code></pre>
+
+<p>We can now run this program in several ways.
+The easiest, of course, is to click the <code>Run Script</code> button.</p>
+
+<pre><code>it works!!!
+</code></pre>
+
+<p>Note that we can run things line-by-line.
+If we were to change our program to the following, we can run each line with <code>Ctrl+Enter</code></p>
+
+<pre><code>print('it works!!!')
+print('this is line 2')
+</code></pre>
+
+<pre><code>it works!!!
+this is line 2
+</code></pre>
+
+<div class="admonition ">
+<p class="first admonition-title">What&#39;s the point of print()?</p>
+<p>We saw earlier that there was no difference between printing something with <code>print()</code>
+and just entering a command on the command line.
+But is this really the case?
+Is there a difference after all?</p>
+
+<p>Try executing the following code:</p>
+
+<pre><code>print('this involves print')
+'this does not'
+</code></pre>
+
+<p>What gets printed if you execute this as a script?
+What gets printed if you execute things line by line?
+Using this information, what&rsquo;s the point of <code>print()</code>?</p>
+</div>
+
+<h2 id="import-ing-things"><code>import</code>-ing things</h2>
+
+<p>We can also run our script from the command line.
+If we were to open up a terminal in the folder where we had saved our program,
+we could run the command <code>python3 our-script-name.py</code> to run it.
+IPython has a neat trick we can use to test this out.
+Any command that begins with <code>!</code> gets run on your computer&rsquo;s command line,
+and not the IPython terminal.</p>
+
+<p>We can use this fact to run the command <code>python3 our-script-name.py</code>.
+I&rsquo;ve called my script <code>test.py</code> as an example.</p>
+
+<pre><code>!python3 test.py
+</code></pre>
+
+<pre><code>it works!!!
+this is line 2
+</code></pre>
+
+<p>What if we wanted to pass additional information to Python?
+For example, what if we want Python to print whatever we type back at us?
+To do this, we&rsquo;ll need to use a bit of extra functionality:
+the <code>sys</code> package.</p>
+
+<p>Python includes a lot of extra features in the form of packages,
+but not all of them get loaded by default.
+To access a package, we need to <code>import</code> it.</p>
+
+<pre><code>import sys
+</code></pre>
+
+<p>You&rsquo;ll notice that there&rsquo;s no output.
+Only one thing is changed:
+We can now use the bonuses provided by the <code>sys</code> package.
+For now, all we will use is <code>sys.argv</code>.
+<code>sys.argv</code> is a special variable
+that stores any additional arguments we provide on the command-line
+after <code>python3 our-script-name.py</code>.
+Let&rsquo;s make a new script called <code>command-args.py</code> to try this out.</p>
+
+<pre><code>import sys
+
+print('we typed: ', sys.argv)
+</code></pre>
+
+<p>We can then execute this program with:</p>
+
+<pre><code>!python3 test.py word1 word2 3
+</code></pre>
+
+<pre><code>we typed: ['test.py', 'word1', 'word2', '3']
+</code></pre>
+
+<p>You&rsquo;ll notice that sys.argv looks different from other data types we&rsquo;ve seen so far.
+<code>sys.argv</code> is a list (more about this in the next session).</p>
+
+
+
+						
+					</div>
+				</div>
+			</div>
+			
+			<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+	<div class="sphinxsidebarwrapper">
+		<p class="logo">
+			<a href="https://jstaf.github.io/hpc-python/">
+				<img class="logo" src="https://jstaf.github.io/hpc-python/favicon.ico" alt="Logo"/>
+				<h1 class="logo logo-name">HPC Python</h1>
+			</a>
+		</p>
+		
+		<p class="blurb">Writing analysis pipelines with Python</p>
+
+		
+
+	
+
+	
+
+	
+		
+
+		
+
+<h3>Navigation</h3>
+<ul>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/">Pipelining with Python</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/basics/">Basic syntax</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/scripts/">Scripts and imports</a>
+	</li>
+	
+</ul>
+
+
+		
+
+	</div>
+</div>
+<div class="clearer"></div>
+</div>
+			<div class="footer">
+	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
+	|
+	Powered by <a href="http://gohugo.io/">Hugo 0.25.1</a>
+	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
+	
+</div>
+
+
+
+
+			
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+			
+
+			
+		</div>
+	</body>
+</html>
