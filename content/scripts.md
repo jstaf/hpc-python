@@ -115,3 +115,5 @@ You'll notice that sys.argv looks different from other data types we've seen so 
 `sys.argv` is a list (more about this in the next session).
 
 
+## [Next section](../lists/)
+

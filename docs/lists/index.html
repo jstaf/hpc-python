@@ -1,0 +1,380 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head lang="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+	<meta name="description" content="Writing analysis pipelines with Python">
+	<meta name="generator" content="Hugo 0.25.1" />
+	
+	<title>Working with lists &mdash; HPC Python</title>
+	
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
+
+	
+
+	<link rel="shortcut icon" href="https://jstaf.github.io/hpc-python/favicon.ico" type="image/x-icon"/>
+</head>
+
+	<body role="document">
+		<div class="document">
+			<div class="documentwrapper">
+				<div class="bodywrapper">
+					<div class="body" role="main">
+						
+	<h1>Working with lists</h1>
+	
+	
+
+<p>At the end of the last lesson, we saw noticed that <code>sys.argv</code> gave us a new datastructure:
+a list.
+A list is a set of objects enclosed by a set of square brackets (<code>[]</code>).</p>
+
+<pre><code>example = [1, 2, 4, 5]
+example
+</code></pre>
+
+<pre><code>[1, 2, 4, 5]
+</code></pre>
+
+<p>Note that a list can hold any type of item, even other lists!</p>
+
+<pre><code>example = [1, True, None, [&quot;word&quot;, 123], &quot;test&quot;]
+example
+</code></pre>
+
+<pre><code>[1, True, None, ['word', 123], 'test']
+</code></pre>
+
+<p>We can get different pieces of a list via indexing.
+We add a set of square brackets after the list in question along with the index of the values
+we want.
+Note that in Python, all indices start from 0 - the first element is actually the 0th element
+(this is different from languages like R or Matlab).
+The best way to think about array indices is that they are the number of offsets from the first position -
+the first element does not require an offset to get to.</p>
+
+<p><img src="https://imgs.xkcd.com/comics/donald_knuth.png" alt="" /></p>
+
+<p>And a few examples of this in action:</p>
+
+<pre><code># first element
+example[0]
+# second element
+example[1]
+# fetch the list inside the list
+example[3]
+</code></pre>
+
+<pre><code>1
+True
+['word', 123]
+</code></pre>
+
+<p>Note that we can index a range using the colon (<code>:</code>) operator.
+A colon by itself means fetch everything.</p>
+
+<pre><code>example[:]
+</code></pre>
+
+<pre><code>[1, True, None, ['word', 123], 'test']
+</code></pre>
+
+<p>A colon on the right side of an index means everything after the specified index.</p>
+
+<pre><code>example[2:]
+</code></pre>
+
+<pre><code>[None, ['word', 123], 'test']
+</code></pre>
+
+<p>A colon on the left side  of an index means everyting before, but not including, the index.</p>
+
+<pre><code>example[:2]
+</code></pre>
+
+<pre><code>[1, True]
+</code></pre>
+
+<p>And if we use a negative index, it means get elements from the end,
+going backwards.</p>
+
+<pre><code># last element
+example[-1]
+# everything except the last two elements
+example[:-2]
+</code></pre>
+
+<pre><code>'test'
+[1, True, None]
+</code></pre>
+
+<p>Note that we can use the index multiple times to retrieve information from nested objects.</p>
+
+<pre><code>example[3][0]
+</code></pre>
+
+<pre><code>'word'
+</code></pre>
+
+<p>If we index out of range, it is an error:</p>
+
+<pre><code>example[5]
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+IndexError                                Traceback (most recent call last)
+&lt;ipython-input-12-98429cb6526b&gt; in &lt;module&gt;()
+----&gt; 1 example[5]
+
+IndexError: list index out of range
+</code></pre>
+
+<p>We can also add two lists together to create a larger list.</p>
+
+<pre><code>[45, 2] + [3]
+</code></pre>
+
+<pre><code>[45, 2, 3]
+</code></pre>
+
+<h2 id="lists-as-objects">Lists as objects</h2>
+
+<p>Like other objects in Python, lists have a unique behavior that can catch a lot of people off guard.
+What happens when we run the following code?</p>
+
+<pre><code>list1 = [1, 2, 3, 4]
+list2 = list1
+list2 += [5, 6, 7]
+print('List 2 is: ', list2)
+print('List 1 is: ', list1)
+</code></pre>
+
+<pre><code>print('List 2 is: ' + list2)                                                                  
+print('List 1 is: ' + list1)  
+</code></pre>
+
+<p>Modifying <code>list2</code> actually modified <code>list1</code> as well.
+In Python, lists are objects.
+Objects are not copied when we assign them to a new value (like in R).
+This is an important optimization,
+as we won&rsquo;t accidentally fill up all of our computer&rsquo;s memory by renaming a variable a couple of times.
+When we ran <code>list2 == list1</code>, it just created a new name for <code>list2</code>.
+<code>list2</code> still points at the same underlying object.</p>
+
+<p>We can verify this with the <code>id()</code> function.
+<code>id()</code> prints an objects unique identifier.
+Two objects will not have the same ID unless they are the same object.</p>
+
+<pre><code>id(list1)
+id(list2)
+</code></pre>
+
+<pre><code>140319556870408
+140319556870408
+</code></pre>
+
+<p>In order to create <code>list2</code> as a unique copy of <code>list1</code>.
+We have to use the <code>.copy()</code> method.</p>
+
+<pre><code>list1 = [1, 2, 3, 4]                                                                          
+list2 = list1.copy()                                                                          list2 += [5, 6, 7]                                                                            
+print('List 2 is: ', list2)                                                                   
+print('List 1 is: ', list1)
+id(list2)
+id(list1)
+</code></pre>
+
+<pre><code>List 2 is:  [1, 2, 3, 4, 5, 6, 7]
+List 1 is:  [1, 2, 3, 4]
+140319554648072
+140319554461896
+</code></pre>
+
+<p><code>.copy()</code> is a method.
+Methods are special functions associated with an object and define what it can do.
+They always follow the syntax <code>object.method(arg1, arg2=some_value)</code>.</p>
+
+<p>Other frequently used methods of lists include <code>.append()</code>:</p>
+
+<pre><code>list1.append(77)
+[1, 2, 3, 4, 77]
+# this adds a one-element list
+list1.append([88])
+[1, 2, 3, 4, 77, [88]]
+</code></pre>
+
+<p>And <code>.extend()</code> (combines two lists, instead of adding the second list as an element):</p>
+
+<pre><code>list1.extend([99, 88, 101])
+</code></pre>
+
+<pre><code>[1, 2, 3, 4, 77, [88], 99, 88, 101]
+</code></pre>
+
+<p>And of course, <code>.remove()</code> and <code>.clear()</code> (both do exactly what you think they should do):</p>
+
+<pre><code>list1.remove([88])
+print(list1)
+list1.clear()
+print(list1)
+</code></pre>
+
+<pre><code>[1, 2, 3, 4, 77, 99, 88, 101]
+[]
+</code></pre>
+
+<div class="admonition ">
+<p class="first admonition-title">Dynamic resizing of lists</p>
+<p>Python&rsquo;s lists are an extremely optimized data structure.
+Unlike R&rsquo;s vectors, there is no time penalty to continuously adding elements to list.
+You never need to preallocate a list at a certain size for performance reasons.</p>
+</div>
+
+<h2 id="iterating-through-lists">Iterating through lists</h2>
+
+<p>We&rsquo;ll very frequently want to iterate over lists and perform an operation with every element.
+We do this using a for loop.</p>
+
+<p>A for loop generally looks like the following:</p>
+
+<pre><code>for variable in things_to_iterate_over:
+	do_stuff_with(variable)
+</code></pre>
+
+<p>An example of an actually functioning for loop is shown below:</p>
+
+<pre><code>for i in range(10):
+	print(i)
+</code></pre>
+
+<pre><code>0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+</code></pre>
+
+<p>In this case we are iterating over the values provided by <code>range()</code>.
+<code>range()</code> is a special generator function we can use to provide.</p>
+
+
+
+						
+					</div>
+				</div>
+			</div>
+			
+			<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+	<div class="sphinxsidebarwrapper">
+		<p class="logo">
+			<a href="https://jstaf.github.io/hpc-python/">
+				<img class="logo" src="https://jstaf.github.io/hpc-python/favicon.ico" alt="Logo"/>
+				<h1 class="logo logo-name">HPC Python</h1>
+			</a>
+		</p>
+		
+		<p class="blurb">Writing analysis pipelines with Python</p>
+
+		
+
+	
+
+	
+
+	
+		
+
+		
+
+<h3>Navigation</h3>
+<ul>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/">Pipelining with Python</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/basics/">Basic syntax</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/scripts/">Scripts and imports</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/lists/">Working with lists</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-intro/">Snakemake</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-snakefiles/">Snakefiles</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-wildcards/">Wildcards</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-patterns/">Pattern Rules</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-python/">Pipelines as Python code</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-resources/">Resources and parallelism</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-logging/">Logging</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-cluster/">Scaling across a cluster</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-final-notes/">Final notes</a>
+	</li>
+	
+</ul>
+
+
+		
+
+	</div>
+</div>
+<div class="clearer"></div>
+</div>
+			<div class="footer">
+	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
+	|
+	Powered by <a href="http://gohugo.io/">Hugo 0.25.1</a>
+	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
+	
+</div>
+
+
+
+
+			
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+			
+
+			
+		</div>
+	</body>
+</html>

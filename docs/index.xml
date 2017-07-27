@@ -43,6 +43,17 @@ Python programs are simply a set of Python commands saved in a file. No compilin
     </item>
     
     <item>
+      <title>Working with lists</title>
+      <link>https://jstaf.github.io/hpc-python/lists/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/lists/</guid>
+      <description>At the end of the last lesson, we saw noticed that sys.argv gave us a new datastructure: a list. A list is a set of objects enclosed by a set of square brackets ([]).
+example = [1, 2, 4, 5] example  [1, 2, 4, 5]  Note that a list can hold any type of item, even other lists!
+example = [1, True, None, [&amp;quot;word&amp;quot;, 123], &amp;quot;test&amp;quot;] example  [1, True, None, [&#39;word&#39;, 123], &#39;test&#39;]  We can get different pieces of a list via indexing.</description>
+    </item>
+    
+    <item>
       <title>Snakemake</title>
       <link>https://jstaf.github.io/hpc-python/sm-intro/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
