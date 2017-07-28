@@ -50,6 +50,8 @@ To install snakemake, please run the following in a command-line terminal:
 pip install --user snakemake
 ```
 
+The files used in this lesson can be downloaded [here](snakemake-lesson.tar.gz).
+
 ## Credits
 
 The Snakemake materials were adapted from Software Carpentry's 
