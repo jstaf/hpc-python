@@ -54,6 +54,17 @@ example = [1, True, None, [&amp;quot;word&amp;quot;, 123], &amp;quot;test&amp;qu
     </item>
     
     <item>
+      <title>Storing data with dicts</title>
+      <link>https://jstaf.github.io/hpc-python/dicts/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/dicts/</guid>
+      <description>Dictionaries (also called dicts) are another key datastructure we&amp;rsquo;ll need to use to write a pipeline. In particular, dicts allow efficient key-value storage of any type of data.
+To create a dict, we use syntax like the following.
+example = {} type(example)  dict  We can then store values in our dict using indexing. The index is referred to as the &amp;ldquo;key&amp;rdquo;, and the stored data is referred to as the &amp;ldquo;value&amp;rdquo;.</description>
+    </item>
+    
+    <item>
       <title>Snakemake</title>
       <link>https://jstaf.github.io/hpc-python/sm-intro/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
