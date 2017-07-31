@@ -1,5 +1,5 @@
 ---
-title: "Working with lists"
+title: "Lists and arrays"
 menu: main
 weight: 4
 ---
@@ -339,6 +339,50 @@ The slowest run took 22.13 times longer than the fastest. This could mean that a
 
 Numpy was about 100x faster, though %timeit did mention that Numpy could be cheating a bit.
 Even in Numpy's worst case scenario however, it still ran 5x faster than using Python's basic lists.
+
+## Working with multiple dimensions
+
+Sometimes, you'll encounter a dataset with multiple dimensions and will need to be able to retrieve elements from it as such.
+
+```
+arr2d = np.arange(0, 40)  # sequence of numbers from 0 to 39
+arr2d = arr2d.reshape([5, 8])  # reshape so it has 5 rows and 8 columns
+arr2d
+```
+```
+array([[ 0,  1,  2,  3,  4,  5,  6,  7],
+       [ 8,  9, 10, 11, 12, 13, 14, 15],
+       [16, 17, 18, 19, 20, 21, 22, 23],
+       [24, 25, 26, 27, 28, 29, 30, 31],
+       [32, 33, 34, 35, 36, 37, 38, 39]])
+```
+
+In this case, we must index using multiple indices, separated by a comma.
+
+To grab the first element, we would use `[0, 0]`
+
+```
+arr2d[0, 0]
+```
+```
+0
+```
+
+The first index, corresponds to rows, the second corresponds to columns, and the third to the next dimension...
+
+```
+arr2d[0, :]
+arr2d[:, 0]
+```
+```
+array([0, 1, 2, 3, 4, 5, 6, 7])
+array([ 0,  8, 16, 24, 32])
+```
+
+{{<admonition title="Practicing indexing">}}
+Retrieve everything defined in the range of
+rows 4-5 and columns 1 - 4.
+{{</admonition>}}
 
 ## [Next section](../dicts/)
 

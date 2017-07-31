@@ -43,7 +43,7 @@ Python programs are simply a set of Python commands saved in a file. No compilin
     </item>
     
     <item>
-      <title>Working with lists</title>
+      <title>Lists and arrays</title>
       <link>https://jstaf.github.io/hpc-python/lists/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
@@ -62,6 +62,18 @@ example = [1, True, None, [&amp;quot;word&amp;quot;, 123], &amp;quot;test&amp;qu
       <description>Dictionaries (also called dicts) are another key datastructure we&amp;rsquo;ll need to use to write a pipeline. In particular, dicts allow efficient key-value storage of any type of data.
 To create a dict, we use syntax like the following.
 example = {} type(example)  dict  We can then store values in our dict using indexing. The index is referred to as the &amp;ldquo;key&amp;rdquo;, and the stored data is referred to as the &amp;ldquo;value&amp;rdquo;.</description>
+    </item>
+    
+    <item>
+      <title>Functional programming</title>
+      <link>https://jstaf.github.io/hpc-python/functions/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://jstaf.github.io/hpc-python/functions/</guid>
+      <description>Of course, at some point, we are going to want to define our ownfunctions rather than just use the ones provided by Python and its various modules.
+The general syntax for defining a function is as follows:
+def function(arg1): # do stuff with arg1 return ans  So, an example function that adds two numbers together might look a little like this:
+def adder(x, y): return x + y adder(1, 2)  3  We can also add a default argument (say if we wanted y to be equal to 10 unless we otherwise specified), by using an equals sign and a default value in our function definition:</description>
     </item>
     
     <item>

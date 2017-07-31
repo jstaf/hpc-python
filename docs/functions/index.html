@@ -1,0 +1,421 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head lang="en-us">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+	<meta name="description" content="Writing analysis pipelines with Python">
+	<meta name="generator" content="Hugo 0.24.1" />
+	
+	<title>Functional programming &mdash; HPC Python</title>
+	
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
+	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
+
+	
+
+	<link rel="shortcut icon" href="https://jstaf.github.io/hpc-python/favicon.ico" type="image/x-icon"/>
+</head>
+
+	<body role="document">
+		<div class="document">
+			<div class="documentwrapper">
+				<div class="bodywrapper">
+					<div class="body" role="main">
+						
+	<h1>Functional programming</h1>
+	
+	
+
+<p>Of course, at some point, we are going to want to define our ownfunctions
+rather than just use the ones provided by Python and its various modules.</p>
+
+<p>The general syntax for defining a function is as follows:</p>
+
+<pre><code>def function(arg1):
+    # do stuff with arg1
+    return ans
+</code></pre>
+
+<p>So, an example function that adds two numbers together might look a little like this:</p>
+
+<pre><code>def adder(x, y):
+	return x + y
+
+adder(1, 2)
+</code></pre>
+
+<pre><code>3
+</code></pre>
+
+<p>We can also add a default argument
+(say if we wanted y to be equal to 10 unless we otherwise specified),
+by using an equals sign and a default value in our function definition:</p>
+
+<pre><code>def adder(x, y=10):
+    return x + y
+
+adder(5)
+</code></pre>
+
+<pre><code>15
+</code></pre>
+
+<div class="admonition ">
+<p class="first admonition-title">Practice defining functions</p>
+<p>Define a function that converts from temperatures in fahrenheit
+to temperatures in kelvin, and another function that converts
+back again.</p>
+
+<p>The general formula for the conversion from fahrenheit to kelvin is:</p>
+
+<p><code>kelvin = (fahr - 32) * 5 / 9 + 273.15</code></p>
+</div>
+
+<h2 id="conditional-statements">Conditional statements</h2>
+
+<p>We may also need to have our functions do specific things in some conditions, but not in others.
+This relies upon comparisons between items:</p>
+
+<p>In python, comparison is done using the <code>==</code> operator:</p>
+
+<pre><code>True == True
+True == False
+'words' == 'words'
+</code></pre>
+
+<pre><code>True
+False
+</code></pre>
+
+<p><code>not</code> indicates the opposite of True or False, and <code>!=</code> means not equal to.</p>
+
+<pre><code>not True == False
+True != False
+</code></pre>
+
+<pre><code>True
+True
+</code></pre>
+
+<p>As with other programming languages, we can make the usual comparisons with the <code>&gt;</code> and <code>&lt;</code> operators.
+Adding an equals sign (<code>&gt;=</code>, <code>&lt;=</code>) indicates less than or equal to or greater than or equal to.</p>
+
+<pre><code>5 &lt; 10
+5 &gt; 10
+-4 &gt;= -4
+1 &lt;= 2
+</code></pre>
+
+<pre><code>True
+False
+True
+False
+</code></pre>
+
+<p>These statements can be combined with the <code>if</code> statement to produce code that executes at various times.</p>
+
+<pre><code>number = 5
+if number &lt;= 10:
+	print('number was less than 10')
+</code></pre>
+
+<pre><code>number was less than 10
+</code></pre>
+
+<p>If the <code>if</code> statement is not equal to <code>True</code>,
+the statement does not execute:</p>
+
+<pre><code>number = 11
+if number &lt;= 10:
+	print('number was less than 10')
+</code></pre>
+
+<p>However, we can add code to execute when the <code>if</code> condition is not met by adding an <code>else</code> statement.</p>
+
+<pre><code>number = 11
+if number &lt;= 10:
+	print('number was less than 10')
+else:
+	print('number was greater than 10')
+</code></pre>
+
+<pre><code>number was greater than 10
+</code></pre>
+
+<p>And if we want to check an additional statement,
+we can use the <code>elif</code> keyword (else-if):</p>
+
+<pre><code>number = 10
+if number &lt;= 10:
+	print('number was less than 10')
+elif number == 10:
+	print('number was equal to 10')
+else:
+	print('number was greater than 10')
+</code></pre>
+
+<p>One final note, to check if a value is equal to <code>None</code> in Python
+we must use <code>is None</code> and <code>is not None</code>.
+Normal <code>==</code> operators will not work.</p>
+
+<pre><code>None is None
+5 is not None
+</code></pre>
+
+<pre><code>True
+True
+</code></pre>
+
+<p>Additionally, we can check if one value is in another set of values with the <code>in</code> operator:</p>
+
+<pre><code>5 in [4, 5, 6]
+43 in [4, 5, 6]
+</code></pre>
+
+<pre><code>True
+False
+</code></pre>
+
+<h2 id="map-filter-and-anonymous-lambda-functions">map(), filter(), and anonymous (lambda) functions</h2>
+
+<p>Python has good support for functional programming,
+and has its own equivalents for map/reduce-style functionality.
+To &ldquo;map&rdquo; a function means to apply it to a set of elements.
+To &ldquo;reduce&rdquo; means to collapse a set of values to a single value.
+Finally, &ldquo;filtering&rdquo; means returning only a set of elements where a certain value is true.</p>
+
+<p>Let&rsquo;s explore what that means with our own functions.
+The syntax of map/reduce/filter is identical:</p>
+
+<pre><code>map(function, thing_to_iterate_over, next_thing_to_iterate_over)
+</code></pre>
+
+<p>Let&rsquo;s apply this to a few test cases using map.
+Note that when selecting which function we are going to &ldquo;map&rdquo; with,</p>
+
+<pre><code>import math
+values = [0, 1, 2, 3, 4, 5, 6]
+map(math.sin, values)
+</code></pre>
+
+<pre><code>&lt;map at 0x7f31c246cba8&gt;
+</code></pre>
+
+<p>To retrieve the actual values, we typically need to make the resulting output a list.</p>
+
+<pre><code>list(map(math.sin, values))
+</code></pre>
+
+<pre><code>[0.0,
+ 0.8414709848078965,
+ 0.9092974268256817,
+ 0.1411200080598672,
+ -0.7568024953079282,
+ -0.9589242746631385,
+ -0.27941549819892586]
+</code></pre>
+
+<p><code>filter()</code> applies a similar operation, but instead of applying a function to every piece,
+it only returns points where a function returns true.</p>
+
+<pre><code>def less_than_3(val):
+	return val &lt; 3
+
+list(filter(less_than_3, values))
+</code></pre>
+
+<pre><code>[0, 1, 2]
+</code></pre>
+
+<p>That was very inconvenient.
+We had to define an entire function just to only use it once.
+The solution for this is to write a one-time use function that has no name.
+Such functions are called either anonymous functions or lamdba ufunctions (both mean the same thing).</p>
+
+<p>To define a lambda function in python, the general syntax is as follows:</p>
+
+<pre><code>lambda x: x + 54
+</code></pre>
+
+<p>In this case, <code>lambda x:</code> indicates we are defining a lambda function with a single argument, <code>x</code>.
+Everything following the <code>:</code> is our function.
+Whatever value this evaluates to is automatically returned.
+So <code>lambda x: x + 54</code> equates to:</p>
+
+<pre><code>def some_func(x):
+	return x + 54
+</code></pre>
+
+<p>Rewriting our filter statement to use a lambda function:</p>
+
+<pre><code>list(filter(lambda x: x &lt; 3, values))
+</code></pre>
+
+<pre><code>[0, 1, 2]
+</code></pre>
+
+<div class="admonition ">
+<p class="first admonition-title">Using lambdas in practice</p>
+<p>Add <code>'-cheesecake'</code> to every word in the following list using <code>map()</code>.</p>
+
+<p><code>['new york', 'chocalate', 'new york', 'ketchup', 'mayo']</code></p>
+
+<p>Using <code>filter()</code>, remove the items which would be absolutely terrible to eat.</p>
+</div>
+
+<h2 id="map-filter-style-functionality-with-numpy-arrays">map/filter style functionality with Numpy arrays</h2>
+
+<p>Although you <em>could</em> use a for-loop to apply a custom function to a numpy array in a single go,
+there is a handy <code>np.vectorize()</code> function you can use to convert your functions to a vectorized numpy equivalent.
+Note that this is purely for convenience - this uses a <code>for-loop</code> internally.</p>
+
+<pre><code># create a function to perform cubes of a number
+vector_cube = np.vectorize(lambda x: x ** 3)
+
+vector_cube(np.array([1, 2, 3, 4, 5]))
+</code></pre>
+
+<pre><code>array([  1,   8,  27,  64, 125])
+</code></pre>
+
+<p>To perform a similar option to <code>filter()</code>,
+you can actually specify a conditional statement inside the <code>[]</code>
+when indexing a Numpy array.</p>
+
+<pre><code>arr = np.array([1, 2, 3, 4, 5])
+arr[arr &gt;= 3]
+</code></pre>
+
+<div class="admonition ">
+<p class="first admonition-title">Removing np.nan values</p>
+<p>Remove all of the <code>np.nan</code> values from the following sequence
+using logical indexing.</p>
+
+<p><code>np.array([np.nan, np.nan, 2, 3, 4, np.nan])</code></p>
+</div>
+
+<h2 id="next-section-profiling"><a href="../profiling/">Next section</a></h2>
+
+
+
+						
+					</div>
+				</div>
+			</div>
+			
+			<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+	<div class="sphinxsidebarwrapper">
+		<p class="logo">
+			<a href="https://jstaf.github.io/hpc-python/">
+				<img class="logo" src="https://jstaf.github.io/hpc-python/favicon.ico" alt="Logo"/>
+				<h1 class="logo logo-name">HPC Python</h1>
+			</a>
+		</p>
+		
+		<p class="blurb">Writing analysis pipelines with Python</p>
+
+		
+
+	
+
+	
+
+	
+		
+
+		
+
+<h3>Navigation</h3>
+<ul>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/">Pipelining with Python</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/basics/">Basic syntax</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/scripts/">Scripts and imports</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/lists/">Lists and arrays</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/dicts/">Storing data with dicts</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/functions/">Functional programming</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-intro/">Snakemake</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-snakefiles/">Snakefiles</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-wildcards/">Wildcards</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-patterns/">Pattern Rules</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-python/">Pipelines as Python code</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-resources/">Resources and parallelism</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-logging/">Logging</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-cluster/">Scaling across a cluster</a>
+	</li>
+	
+	<li class="toctree-l1">
+		<a class="reference internal" href="/hpc-python/sm-final-notes/">Final notes</a>
+	</li>
+	
+</ul>
+
+
+		
+
+	</div>
+</div>
+<div class="clearer"></div>
+</div>
+			<div class="footer">
+	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
+	|
+	Powered by <a href="http://gohugo.io/">Hugo 0.24.1</a>
+	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
+	
+</div>
+
+
+
+
+			
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+			
+
+			
+		</div>
+	</body>
+</html>
