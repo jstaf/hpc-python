@@ -7,7 +7,7 @@
 	<meta name="description" content="Writing analysis pipelines with Python">
 	<meta name="generator" content="Hugo 0.24.1" />
 	
-	<title> HPC Python</title>
+	<title>Measuring code speed &mdash; HPC Python</title>
 	
 	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
 	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
@@ -23,66 +23,112 @@
 				<div class="bodywrapper">
 					<div class="body" role="main">
 						
+	<h1>Measuring code speed</h1>
 	
-		<h1>Pipelining with Python</h1>
-		
+	
 
-<p>Python is probably the most versatile language in existence.
-However one of its most useful features is its ability to tie things
-together and automate the execution of other programs.</p>
+<h2 id="what-is-the-fastest-way-of-doing-things">What is the fastest way of doing things?</h2>
 
-<p>This tutorial focuses on using Python in HPC environments to automate
-data analysis pipelines with Snakemake.
-We&rsquo;ll start with the basics and cover everything you need to get started.
-Some elements of writing performance-oriented code will be covered,
-but it is not the main focus.
-There is no prerequisite knowlege for this tutorial,
-although having some prior experience with the command-line will be very helpful.</p>
+<p>We already know how to measure the execution speed of a piece of code (or block of code) with <code>%timeit</code>.
+<code>%timeit</code> is a magic function from IPython -
+the only catch is that it must be used from an IPython interpreter.
+However, the major advantage of using <code>%timeit</code> is that you don&rsquo;t have to import anything,
+and you&rsquo;ll never accidentally choose the wrong number of iterations to time
+(and get stuck waiting forever for your timing results to come back).</p>
 
-<h2 id="snakemake">Snakemake</h2>
+<p>To review:</p>
 
-<p>Snakemake is a “pipelining tool”. It replaces the role of the researcher in running an analysis.
-A researcher specifies their workflow’s tasks in a special file (called “Snakefile”) and runs Snakemake.
-Snakemake then handles the specifics of running the researchers’ tasks as efficiently as possible.</p>
+<p><code>%timeit</code> - times a single line.</p>
 
-<p>This has several key advantages over just running things ourselves:</p>
-
-<ul>
-<li><p>Our work is reproducible. Snakemake will run our analysis the same way every time. We can demonstrate that repeating the workflow returns the same result.</p></li>
-
-<li><p>Snakemake runs in parallel and has a built-in scheduler designed to maximize throughput. When we run a workflow, we can be confident that our work is getting done as fast as possible.</p></li>
-
-<li><p>Snakemake automatically takes into account updates to our starting data and code. If we make a change, Snakemake will only re-run the analysis affected files and downstream output. By the same token, if a workflow fails halfway through, it will pick up from where things left off.</p></li>
-
-<li><p>Workflows are portable - the same pipeline can be used on any system, anywhere. Snakemake handles all of the intricacies of running jobs (no need to write scripts for a cluster scheduler, Snakemake does that for you!).</p></li>
-</ul>
-
-<p>Long story short, Snakemake makes the process of running our code more efficient and saves us work!</p>
-
-<h2 id="setup">Setup</h2>
-
-<p>You will want to have Python 3 and your favorite Python IDE preinstalled
-and ready to go.
-If you don&rsquo;t know where to get things or what to install,
-just install Anaconda (the Python 3 version) from <a href="https://www.continuum.io/downloads">https://www.continuum.io/downloads</a>.
-Anaconda is an extremely comprehensive Python distribution that comes
-with all of the bells and whistles ready to go.</p>
-
-<p>To install snakemake, please run the following in a command-line terminal:</p>
-
-<pre><code>pip install --user snakemake
+<pre><code>%timeit [1] * 10000
 </code></pre>
 
-<p>The files used in this lesson can be downloaded <a href="snakemake-lesson.tar.gz">here</a>.</p>
+<pre><code>10000 loops, best of 3: 35.1 µs per loop
+</code></pre>
 
-<h2 id="credits">Credits</h2>
+<p><code>%%timeit</code> - times an IPython cell.</p>
 
-<p>The Snakemake materials were adapted from Software Carpentry&rsquo;s
-<a href="http://swcarpentry.github.io/make-novice/">Automation and Make</a> lesson.</p>
+<pre><code>%%timeit
+last = 0
+for i in range(10000):
+	last += i
+</code></pre>
 
-<h2 id="get-started-basics"><a href="./basics/">Get started</a></h2>
+<pre><code>1000 loops, best of 3: 866 µs per loop
+</code></pre>
 
-	
+<h2 id="profiling-code">Profiling code</h2>
+
+<p>Though the above technique tells you which of two pieces of code is faster,
+it does not identify which portion of code is the slowest.
+Profiling code allows us to identify areas for improvement.</p>
+
+<p>Python ships with a profling module called <code>cProfile</code>.
+<code>cProfile</code> lets us see exactly how long was used to run each line of code as well as all internal calls made by a function.
+Slower code will have longer execution times,
+and is an area of an improvement for us to focus our efforts on.</p>
+
+<p>To profile a block of code, we use the <code>cProfile.run()</code> function
+(the code to profile is input as a string).</p>
+
+<pre><code>cProfile.run(
+'''
+test = np.arange(10000000)
+np.sin(test)
+'''
+)
+</code></pre>
+
+<pre><code>         4 function calls in 0.519 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.468    0.468    0.519    0.519 &lt;string&gt;:2(&lt;module&gt;)
+        1    0.000    0.000    0.519    0.519 {built-in method builtins.exec}
+        1    0.050    0.050    0.050    0.050 {built-in method numpy.core.multiarray.arange}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+</code></pre>
+
+<h2 id="profiling-script-execution">Profiling script execution</h2>
+
+<p>We can also profile scripts from the command-line using the following syntax
+(the <code>-s cumtime</code> sorts code by cumulative time spent in each function):</p>
+
+<p><code>python3 -m cProfile -s cumtime some_script.py</code></p>
+
+<p>However, this is not super useful, especially if the call stack is huge (it can be really tough to interpret the results!)
+There is a nice visualizer called &ldquo;Snakeviz&rdquo; we can use to get around this.</p>
+
+<p>For this demo, make sure you&rsquo;ve got the <code>requests</code> and <code>snakeviz</code> modules installed:</p>
+
+<pre><code>pip install --user requests snakeviz
+</code></pre>
+
+<p>Now create a script that looks like the following (called &ldquo;iss.py&rdquo;?):</p>
+
+<pre><code>import requests
+
+r = requests.get('http://api.open-notify.org/iss-now.json')
+server_response = r.json()
+iss_location = server_response['iss_position']
+
+print('The International Space Station is currently at {}, {}'.
+        format(iss_location['latitude'], iss_location['longitude']))
+</code></pre>
+
+<p>We can create a profile of our program with the following commands:</p>
+
+<pre><code>python3 -m cProfile -o iss.profile iss.py
+snakeviz iss.profile
+</code></pre>
+
+<p>You now have a way to visualize our code execution.
+Looking at the code profile, the vast majority of time was actually spent importing the requests module,
+with a small amount of time spent performing the HTTP request (<code>requests.get()</code>).</p>
+
+<h2 id="next-section-performance"><a href="../performance/">Next section</a></h2>
+
 
 
 						

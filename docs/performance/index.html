@@ -7,7 +7,7 @@
 	<meta name="description" content="Writing analysis pipelines with Python">
 	<meta name="generator" content="Hugo 0.24.1" />
 	
-	<title> HPC Python</title>
+	<title>Common performance optimizations &mdash; HPC Python</title>
 	
 	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/alabaster.css" type="text/css" />
 	<link rel="stylesheet" href="https://jstaf.github.io/hpc-python/css/highlight.css" type="text/css" />
@@ -23,66 +23,106 @@
 				<div class="bodywrapper">
 					<div class="body" role="main">
 						
+	<h1>Common performance optimizations</h1>
 	
-		<h1>Pipelining with Python</h1>
-		
+	
 
-<p>Python is probably the most versatile language in existence.
-However one of its most useful features is its ability to tie things
-together and automate the execution of other programs.</p>
+<p>We&rsquo;ll quickly cover a number of common performance optimizations in Python.
+Most of these things deal with heavy-duty number crunching,
+and not all have examples (was a bit pressed for time when writing these lessons).</p>
 
-<p>This tutorial focuses on using Python in HPC environments to automate
-data analysis pipelines with Snakemake.
-We&rsquo;ll start with the basics and cover everything you need to get started.
-Some elements of writing performance-oriented code will be covered,
-but it is not the main focus.
-There is no prerequisite knowlege for this tutorial,
-although having some prior experience with the command-line will be very helpful.</p>
+<h2 id="use-optimized-libraries-like-numpy-wherever-possible">Use optimized libraries like Numpy wherever possible</h2>
 
-<h2 id="snakemake">Snakemake</h2>
+<p>Libraries like Numpy and Pandas are filled with lots of hyper-optimized C/C++/Fortran code.
+Using these libraries will almost always be faster than using pure Python equivalents:</p>
 
-<p>Snakemake is a “pipelining tool”. It replaces the role of the researcher in running an analysis.
-A researcher specifies their workflow’s tasks in a special file (called “Snakefile”) and runs Snakemake.
-Snakemake then handles the specifics of running the researchers’ tasks as efficiently as possible.</p>
-
-<p>This has several key advantages over just running things ourselves:</p>
-
-<ul>
-<li><p>Our work is reproducible. Snakemake will run our analysis the same way every time. We can demonstrate that repeating the workflow returns the same result.</p></li>
-
-<li><p>Snakemake runs in parallel and has a built-in scheduler designed to maximize throughput. When we run a workflow, we can be confident that our work is getting done as fast as possible.</p></li>
-
-<li><p>Snakemake automatically takes into account updates to our starting data and code. If we make a change, Snakemake will only re-run the analysis affected files and downstream output. By the same token, if a workflow fails halfway through, it will pick up from where things left off.</p></li>
-
-<li><p>Workflows are portable - the same pipeline can be used on any system, anywhere. Snakemake handles all of the intricacies of running jobs (no need to write scripts for a cluster scheduler, Snakemake does that for you!).</p></li>
-</ul>
-
-<p>Long story short, Snakemake makes the process of running our code more efficient and saves us work!</p>
-
-<h2 id="setup">Setup</h2>
-
-<p>You will want to have Python 3 and your favorite Python IDE preinstalled
-and ready to go.
-If you don&rsquo;t know where to get things or what to install,
-just install Anaconda (the Python 3 version) from <a href="https://www.continuum.io/downloads">https://www.continuum.io/downloads</a>.
-Anaconda is an extremely comprehensive Python distribution that comes
-with all of the bells and whistles ready to go.</p>
-
-<p>To install snakemake, please run the following in a command-line terminal:</p>
-
-<pre><code>pip install --user snakemake
+<pre><code>%%timeit
+array = np.arange(1000000)
+array = array ** 2 
 </code></pre>
 
-<p>The files used in this lesson can be downloaded <a href="snakemake-lesson.tar.gz">here</a>.</p>
+<pre><code>100 loops, best of 3: 4.62 ms per loop
+</code></pre>
 
-<h2 id="credits">Credits</h2>
+<pre><code>%%timeit
+slow = range(1000000)
+slow = list(map(lambda x: x ** 2, slow))
+</code></pre>
 
-<p>The Snakemake materials were adapted from Software Carpentry&rsquo;s
-<a href="http://swcarpentry.github.io/make-novice/">Automation and Make</a> lesson.</p>
+<pre><code>1 loop, best of 3: 589 ms per loop
+</code></pre>
 
-<h2 id="get-started-basics"><a href="./basics/">Get started</a></h2>
+<h2 id="hard-disk-no-nos">Hard-disk no-nos</h2>
 
-	
+<p>Writing to the hard disk will always be slower than
+writing objects to memory.
+There are no exceptions.</p>
+
+<p>Also, wherever possible, one big write to disk will always
+be faster than lots of little writes to disk.</p>
+
+<h2 id="numba-and-jit-compiled-code">numba and JIT-compiled code</h2>
+
+<p><code>numba</code> is a JIT compiler for Python.
+A JIT compiler is a special type of compiler that compiles
+normally slow code from an interpreted language like Python
+into ultra-fast machine code for your CPU right before it runs.</p>
+
+<p>Using <code>numba</code> is rather easy - first we import it:</p>
+
+<pre><code>from numba import jit
+</code></pre>
+
+<p>Then we place the <code>@jit</code> decorator above any functions we want to be compiled (I modified this bubble sort implementation from the <a href="numba.pydata.org/numba-doc/0.12.2/tutorial_firststeps.html">numba documentation</a>):</p>
+
+<pre><code>def bubblesort(Y):
+	X = Y.copy()
+    N = len(X)
+    for end in range(N, 1, -1):
+        for i in range(end - 1):
+            cur = X[i]
+            if cur &gt; X[i + 1]:
+                tmp = X[i]
+                X[i] = X[i + 1]
+                X[i + 1] = tmp
+	return X
+
+
+@jit
+def bubblesort_jit(Y):
+	X = Y.copy()
+    N = len(X)
+    for end in range(N, 1, -1):
+        for i in range(end - 1):
+            cur = X[i]
+            if cur &gt; X[i + 1]:
+                tmp = X[i]
+                X[i] = X[i + 1]
+                X[i + 1] = tmp
+	return X
+
+randomized = np.random.shuffle(np.arange(1000))
+
+</code></pre>
+
+<p>Now lets see the performance difference between the two versions:</p>
+
+<pre><code>%timeit bubblesort(randomized)
+</code></pre>
+
+<pre><code>1 loop, best of 3: 313 ms per loop
+</code></pre>
+
+<pre><code>%timeit bubblesort_jit(randomized)
+</code></pre>
+
+<pre><code>1000 loops, best of 3: 1.52 ms per loop
+</code></pre>
+
+<p>The <code>@jit</code> version was considerably faster.</p>
+
+<h2 id="next-section-parallel"><a href="../parallel/">Next section</a></h2>
+
 
 
 						
