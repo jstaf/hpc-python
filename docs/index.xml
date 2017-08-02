@@ -102,8 +102,7 @@ Use optimized libraries like Numpy wherever possible Libraries like Numpy and Pa
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://jstaf.github.io/hpc-python/parallel/</guid>
-      <description>Python does not thread very well. Specifically, Python has what&amp;rsquo;s known as a Global Interpreter Lock (GIL). The GIL ensures that only one thread can run at a time. This can make multithreaded processing very difficult. Instead, the best way to go about doing things is to use multiple independent processes to perform the computations. This is done using the multiprocessing module.
-Before we start, we will need the number of CPU cores in our computer.</description>
+      <description>Python does not thread very well. Specifically, Python has what&amp;rsquo;s known as a Global Interpreter Lock (GIL). The GIL ensures that only one thread can run at a time. This can make multithreaded processing very difficult. Instead, the best way to go about doing things is to use multiple independent processes to perform the computations. This method skips the GIL, as each individual process has it&amp;rsquo;s own GIL that does not block the others.</description>
     </item>
     
     <item>

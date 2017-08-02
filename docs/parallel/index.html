@@ -5,7 +5,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 	<meta name="description" content="Writing analysis pipelines with Python">
-	<meta name="generator" content="Hugo 0.24.1" />
+	<meta name="generator" content="Hugo 0.25.1" />
 	
 	<title>Running code in parallel &mdash; HPC Python</title>
 	
@@ -32,7 +32,9 @@ Specifically, Python has what&rsquo;s known as a Global Interpreter Lock (GIL).
 The GIL ensures that only one thread can run at a time.
 This can make multithreaded processing very difficult.
 Instead, the best way to go about doing things is to use multiple independent processes to perform the computations.
-This is done using the <code>multiprocessing</code> module.</p>
+This method skips the GIL,
+as each individual process has it&rsquo;s own GIL that does not block the others.
+This is typically done using the <code>multiprocessing</code> module.</p>
 
 <p>Before we start, we will need the number of CPU cores in our computer.
 To get the number of cores in our computer, we can use the <code>psutil</code> module.
@@ -46,7 +48,7 @@ For heavy compute jobs, you are generally interested in cores.</p>
 psutil.cpu_count(logical=False)
 </code></pre>
 
-<pre><code>2
+<pre><code>8
 </code></pre>
 
 <p>Using this number, we can create a pool of worker processes withh which to parallelize our jobs:</p>
@@ -61,11 +63,64 @@ In particular, there is a map function
 (with identical syntax to the <code>map()</code> function used earlier),
 that runs a workflow in parallel.</p>
 
-<pre><code>pool.map()
+<p>Let&rsquo;s try <code>map()</code> out with a test function that just runs sleep.</p>
+
+<pre><code>import time
+
+def sleeping(arg):
+    time.sleep(0.1)
+
+%timeit list(map(sleeping, range(24)))
+%timeit pool.map(sleeping, range(24))
 </code></pre>
 
+<pre><code>1 loop, best of 3: 2.4 s per loop
+1 loop, best of 3: 302 ms per loop
+</code></pre>
+
+<p>That worked nicely! However what happens when we try a lambda function?</p>
+
+<pre><code>pool.map(lambda x: time.sleep(0.1), range(24))
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+PicklingError                             Traceback (most recent call last)
+&lt;ipython-input-10-df8237b4b421&gt; in &lt;module&gt;()
+----&gt; 1 pool.map(lambda x: time.sleep(0.1), range(24))
+
+# more errors omitted
+</code></pre>
+
+<p>The <code>multiprocessing</code> module has a major limitation:
+it only accepts certain functions, and in certain situations.
+For instance any class methods, lambdas, or functions defined in <code>__main__</code> wont&rsquo; work.
+This is due to the way Python &ldquo;pickles&rdquo; (read: serializes) data
+and sends it to the worker processes.
+&ldquo;Pickling&rdquo; simply can&rsquo;t handle a lot of different types of Python objects.</p>
+
+<p>Fortunately, there is a fork of the <code>multiprocessing</code> module called <code>multiprocess</code>
+that works just fine (<code>pip install --user multiprocess</code>).
+<code>multiprocess</code> uses <code>dill</code> instead of <code>pickle</code> to serialize Python objects,
+and does not suffer the same issues.
+Usage is identical:</p>
+
+<pre><code># shut down the old workers
+pool.close()
+
+from multiprocess import Pool
+pool = Pool(8)
+%timeit pool.map(lambda x: time.sleep(0.1), range(24))
+pool.close()
+</code></pre>
+
+<pre><code>1 loop, best of 3: 309 ms per loop
+</code></pre>
+
+<div class="admonition note">
+<p class="first admonition-title">Chunk size</p>
 <p>The <code>chunksize</code> argument lets you process data in chunks,
 cutting down time lost to inter-process communication.</p>
+</div>
 
 <h2 id="next-section-sm-intro"><a href="../sm-intro/">Next section</a></h2>
 
@@ -185,7 +240,7 @@ cutting down time lost to inter-process communication.</p>
 			<div class="footer">
 	&copy; 2017 <a href="https://github.com/jstaf">Jeff Stafford</a>
 	|
-	Powered by <a href="http://gohugo.io/">Hugo 0.24.1</a>
+	Powered by <a href="http://gohugo.io/">Hugo 0.25.1</a>
 	&amp; <a href="https://github.com/digitalcraftsman/hugo-alabaster-theme">Alabaster</a>
 	
 </div>
